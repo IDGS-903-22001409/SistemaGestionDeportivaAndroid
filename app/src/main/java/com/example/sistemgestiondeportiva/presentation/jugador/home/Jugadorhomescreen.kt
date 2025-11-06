@@ -1,0 +1,408 @@
+package com.example.sistemgestiondeportiva.presentation.jugador.home
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.example.sistemgestiondeportiva.data.models.EstadisticasJugador
+import com.example.sistemgestiondeportiva.data.models.Jugador
+import com.example.sistemgestiondeportiva.data.models.Partido
+import java.text.SimpleDateFormat
+import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun JugadorHomeScreen(
+    viewModel: JugadorViewModel,
+    onNavigateToStats: () -> Unit,
+    onNavigateToMatches: () -> Unit,
+    onNavigateToProfile: () -> Unit
+) {
+    val jugador by viewModel.jugador.collectAsState()
+    val estadisticas by viewModel.estadisticas.collectAsState()
+    val proximosPartidos by viewModel.proximosPartidos.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarDatos()
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Inicio") },
+                actions = {
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(Icons.Default.Person, "Perfil")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Información del jugador
+                item {
+                    jugador?.let { j ->
+                        JugadorInfoCard(jugador = j)
+                    }
+                }
+
+                // Estadísticas breves
+                item {
+                    estadisticas?.let { stats ->
+                        EstadisticasBrevesCard(
+                            estadisticas = stats,
+                            onVerMas = onNavigateToStats
+                        )
+                    }
+                }
+
+                // Próximos partidos
+                item {
+                    Text(
+                        "Próximos Partidos",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                if (proximosPartidos.isEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "No hay próximos partidos programados",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    items(proximosPartidos.take(3)) { partido ->
+                        PartidoCard(partido = partido)
+                    }
+
+                    if (proximosPartidos.size > 3) {
+                        item {
+                            TextButton(
+                                onClick = onNavigateToMatches,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Ver todos los partidos")
+                                Icon(Icons.Default.ChevronRight, null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun JugadorInfoCard(jugador: Jugador) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        jugador.usuario?.nombre ?: "Jugador",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        jugador.equipo?.nombreEquipo ?: "Equipo",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                }
+
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Text(
+                        "#${jugador.numeroCamiseta}",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.SportsSoccer,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    jugador.posicion,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                if (jugador.esCapitan) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.tertiary
+                    ) {
+                        Text(
+                            "CAPITÁN",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EstadisticasBrevesCard(
+    estadisticas: EstadisticasJugador,
+    onVerMas: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Estadísticas",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                IconButton(onClick = onVerMas) {
+                    Icon(Icons.Default.ChevronRight, "Ver más")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                EstadisticaItem(
+                    icon = Icons.Default.SportsSoccer,
+                    label = "Partidos",
+                    value = estadisticas.partidosJugados.toString()
+                )
+
+                EstadisticaItem(
+                    icon = Icons.Default.Stars,
+                    label = "Goles",
+                    value = estadisticas.goles.toString()
+                )
+
+                EstadisticaItem(
+                    icon = Icons.Default.AssistWalker,
+                    label = "Asistencias",
+                    value = estadisticas.asistencias.toString()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LinearProgressIndicator(
+                progress = (estadisticas.promedioGoles.coerceIn(0.0, 2.0) / 2.0).toFloat(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                "Promedio: ${String.format("%.2f", estadisticas.promedioGoles)} goles/partido",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun EstadisticaItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(32.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            value,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun PartidoCard(partido: Partido) {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    val fecha = try {
+        dateFormat.format(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(partido.fechaPartido))
+    } catch (e: Exception) {
+        partido.fechaPartido
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    partido.equipoLocal?.nombreEquipo ?: "Equipo Local",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Text(
+                    "VS",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+
+                Text(
+                    partido.equipoVisitante?.nombreEquipo ?: "Equipo Visitante",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.CalendarToday,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    fecha,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 4.dp)
+            ) {
+                Icon(
+                    Icons.Default.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    partido.lugarPartido,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = when (partido.estado) {
+                    "Programado" -> MaterialTheme.colorScheme.primaryContainer
+                    "En Curso" -> MaterialTheme.colorScheme.tertiaryContainer
+                    "Finalizado" -> MaterialTheme.colorScheme.secondaryContainer
+                    else -> MaterialTheme.colorScheme.surfaceVariant
+                },
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text(
+                    partido.estado,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
+}
