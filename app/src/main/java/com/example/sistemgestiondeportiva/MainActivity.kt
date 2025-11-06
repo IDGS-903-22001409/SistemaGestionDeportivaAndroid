@@ -3,22 +3,27 @@ package com.example.sistemgestiondeportiva
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import navegacion.ui.theme.TorneoManagerTheme
+import androidx.compose.material3.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.sistemgestiondeportiva.inicioSesion.PantallaLogin
+import com.example.sistemgestiondeportiva.escaneo.EscanerScreen
+import com.example.sistemgestiondeportiva.jugador.MainJugadorScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TorneoManagerTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+            MaterialTheme {
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = "login"
                 ) {
-                    TorneoManagerApp()
+                    composable("login") { PantallaLogin(navController) }
+                    composable("jugador") { MainJugadorScreen() }
+                    composable("escaner") { EscanerScreen() }
                 }
             }
         }
