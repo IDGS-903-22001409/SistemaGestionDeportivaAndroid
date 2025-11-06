@@ -2,12 +2,14 @@ package com.example.sistemgestiondeportiva.presentation.login
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -37,16 +39,17 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = Icons.Default.SportsSoccer,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary
+            // Icono de deportes usando texto emoji
+            Text(
+                text = "⚽",
+                style = MaterialTheme.typography.displayLarge,
+                modifier = Modifier.size(80.dp)
             )
 
             Text(
                 "Sistema de Gestión Deportiva",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -55,6 +58,9 @@ fun LoginScreen(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
+                leadingIcon = {
+                    Icon(Icons.Default.AccountCircle, "Email")
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading
@@ -64,13 +70,17 @@ fun LoginScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, "Contraseña")
+                },
+                visualTransformation = if (passwordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
                 trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
-                        )
+                    TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Text(if (passwordVisible) "Ocultar" else "Mostrar")
                     }
                 },
                 singleLine = true,
@@ -139,7 +149,7 @@ fun LoginScreen(
                 enabled = !isLoading
             ) {
                 Icon(
-                    imageVector = Icons.Default.QrCode2,
+                    imageVector = Icons.Default.PlayArrow,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
@@ -149,7 +159,3 @@ fun LoginScreen(
         }
     }
 }
-
-// Agregar iconos que faltan
-import androidx.compose.material.icons.filled.QrCode2
-import androidx.compose.material.icons.filled.SportsSoccer

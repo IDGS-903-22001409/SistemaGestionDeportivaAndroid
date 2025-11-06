@@ -1,6 +1,5 @@
 package com.example.sistemgestiondeportiva.data.api
 
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -10,8 +9,10 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
 
     // IMPORTANTE: Cambia esta URL por la URL de tu backend
-    private const val BASE_URL = "http://TU_IP_O_DOMINIO:TU_PUERTO/"
-    // Ejemplo: "http://192.168.1.100:5000/" o "https://tudominio.com/"
+    // Si usas el emulador de Android: "http://10.0.2.2:5022/"
+    // Si usas un dispositivo físico: "http://TU_IP_LOCAL:5022/" (ejemplo: "http://192.168.1.100:5022/")
+    // Si tu backend está en HTTPS: "https://tudominio.com/"
+    private const val BASE_URL = "http://10.0.2.2:5022/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -38,5 +39,5 @@ object RetrofitClient {
 sealed class ApiResult<out T> {
     data class Success<T>(val data: T) : ApiResult<T>()
     data class Error(val message: String) : ApiResult<Nothing>()
-    object Loading : ApiResult<Nothing>()
+    data object Loading : ApiResult<Nothing>()
 }
