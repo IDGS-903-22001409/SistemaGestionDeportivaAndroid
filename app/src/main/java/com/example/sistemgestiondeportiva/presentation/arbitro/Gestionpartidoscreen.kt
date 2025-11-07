@@ -386,7 +386,7 @@ fun ControlesPartidoCard(
                             containerColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Icon(Icons.Default.Stop, null)
+                        Icon(Icons.Default.Close, null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Finalizar Partido")
                     }
@@ -438,10 +438,10 @@ fun EventoCard(
 
                 Icon(
                     when (evento.tipoEvento) {
-                        "Gol" -> Icons.Default.SportsSoccer
-                        "Asistencia" -> Icons.Default.AssistWalker
-                        "TarjetaAmarilla" -> Icons.Default.Style
-                        "TarjetaRoja" -> Icons.Default.Block
+                        "Gol" -> Icons.Default.Add              // Instead of SportsSoccer
+                        "Asistencia" -> Icons.Default.AccountCircle  // Instead of AssistWalker
+                        "TarjetaAmarilla" -> Icons.Default.Info  // Instead of Style (or use Bookmark)
+                        "TarjetaRoja" -> Icons.Default.Close      // Instead of Block
                         else -> Icons.Default.Info
                     },
                     contentDescription = null,
@@ -493,9 +493,9 @@ fun RegistrarEventoDialog(
 
     val jugadores = remember(equipoSeleccionado) {
         if (equipoSeleccionado == "Local") {
-            partido.equipoLocal?.let { emptyList() } ?: emptyList() // Aquí deberías cargar los jugadores
+            partido.equipoLocal?.let { emptyList<Jugador>() } ?: emptyList()
         } else {
-            partido.equipoVisitante?.let { emptyList() } ?: emptyList()
+            partido.equipoVisitante?.let { emptyList<Jugador>() } ?: emptyList()
         }
     }
 

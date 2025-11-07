@@ -119,7 +119,7 @@ fun JugadorHomeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("Ver todos los partidos")
-                                Icon(Icons.Default.ChevronRight, null)
+                                Icon(Icons.Default.Add, null)
                             }
                         }
                     }
@@ -180,7 +180,7 @@ fun JugadorInfoCard(jugador: Jugador) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.SportsSoccer,
+                    Icons.Default.Add,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
@@ -233,7 +233,7 @@ fun EstadisticasBrevesCard(
                 )
 
                 IconButton(onClick = onVerMas) {
-                    Icon(Icons.Default.ChevronRight, "Ver más")
+                    Icon(Icons.Default.Add, "Ver más")
                 }
             }
 
@@ -244,19 +244,19 @@ fun EstadisticasBrevesCard(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 EstadisticaItem(
-                    icon = Icons.Default.SportsSoccer,
+                    icon = Icons.Default.Add,
                     label = "Partidos",
                     value = estadisticas.partidosJugados.toString()
                 )
 
                 EstadisticaItem(
-                    icon = Icons.Default.Stars,
+                    icon = Icons.Default.Add,
                     label = "Goles",
                     value = estadisticas.goles.toString()
                 )
 
                 EstadisticaItem(
-                    icon = Icons.Default.AssistWalker,
+                    icon = Icons.Default.Add,
                     label = "Asistencias",
                     value = estadisticas.asistencias.toString()
                 )
@@ -356,7 +356,7 @@ fun PartidoCard(partido: Partido) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.CalendarToday,
+                    Icons.Default.Add,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant

@@ -16,10 +16,12 @@ import androidx.navigation.navArgument
 import com.example.sistemgestiondeportiva.data.local.UserPreferences
 import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroHomeScreen
 import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroViewModel
+import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroViewModelFactory
 import com.example.sistemgestiondeportiva.presentation.arbitro.GestionPartidoScreen
 import com.example.sistemgestiondeportiva.presentation.components.QRScannerScreen
 import com.example.sistemgestiondeportiva.presentation.jugador.home.JugadorHomeScreen
 import com.example.sistemgestiondeportiva.presentation.jugador.home.JugadorViewModel
+import com.example.sistemgestiondeportiva.presentation.jugador.home.JugadorViewModelFactory
 import com.example.sistemgestiondeportiva.presentation.login.*
 import com.example.sistemgestiondeportiva.theme.AplicationDemoTheme
 import kotlinx.coroutines.flow.first

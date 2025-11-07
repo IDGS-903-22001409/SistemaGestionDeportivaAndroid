@@ -12,7 +12,7 @@ object RetrofitClient {
     // Si usas el emulador de Android: "http://10.0.2.2:5022/"
     // Si usas un dispositivo físico: "http://TU_IP_LOCAL:5022/" (ejemplo: "http://192.168.1.100:5022/")
     // Si tu backend está en HTTPS: "https://tudominio.com/"
-    private const val BASE_URL = "http://10.0.2.2:5022/"
+    private const val BASE_URL = "http://192.168.137.1:5022/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

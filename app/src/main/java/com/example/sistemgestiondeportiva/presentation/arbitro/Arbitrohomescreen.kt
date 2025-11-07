@@ -131,7 +131,7 @@ fun ArbitroInfoCard(arbitro: Arbitro) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.SportsSoccer,
+                    Icons.Default.Info,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.primary
@@ -176,7 +176,7 @@ fun ArbitroEstadisticasCard(estadisticas: EstadisticasArbitro) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.SportsSoccer,
+                        Icons.Default.Info,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -196,7 +196,7 @@ fun ArbitroEstadisticasCard(estadisticas: EstadisticasArbitro) {
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.Style,
+                        Icons.Default.Info,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.tertiary
@@ -216,7 +216,7 @@ fun ArbitroEstadisticasCard(estadisticas: EstadisticasArbitro) {
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.Block,
+                        Icons.Default.Info,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.error
@@ -320,7 +320,7 @@ fun PartidoArbitroCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.CalendarToday,
+                    Icons.Default.Info,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -375,7 +375,7 @@ fun PartidoArbitroCard(
 
                 if (partido.estado != "Finalizado") {
                     Icon(
-                        Icons.Default.ChevronRight,
+                        Icons.Default.Add,
                         contentDescription = "Ver partido",
                         tint = MaterialTheme.colorScheme.primary
                     )
