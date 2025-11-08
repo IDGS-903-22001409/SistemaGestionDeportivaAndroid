@@ -26,6 +26,8 @@ import com.example.sistemgestiondeportiva.presentation.login.*
 import com.example.sistemgestiondeportiva.theme.AplicationDemoTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import android.util.Base64
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,20 +101,34 @@ fun AppNavigation() {
                 )
                 QRScannerScreen(
                     onQRCodeScanned = { qrCode ->
+                        // Codificar el token en Base64 para navegación segura
+                        val encodedToken = Base64.encodeToString(
+                            qrCode.toByteArray(),
+                            Base64.URL_SAFE or Base64.NO_WRAP
+                        )
+
                         viewModel.validarQR(
                             qrCode = qrCode,
                             onSuccess = { qrData ->
                                 when (qrData.type) {
-                                    "CAPITAN" -> navController.navigate("registro-capitan/${qrData.token}")
-                                    "JUGADOR" -> navController.navigate("registro-jugador/${qrData.token}/${qrData.equipoID}")
-                                    "ARBITRO" -> navController.navigate("registro-arbitro/${qrData.token}")
+                                    "CAPITAN" -> navController.navigate("registro-capitan/$encodedToken") {
+                                        popUpTo("scan-qr") { inclusive = true }
+                                    }
+                                    "JUGADOR" -> navController.navigate("registro-jugador/$encodedToken/${qrData.equipoID}") {
+                                        popUpTo("scan-qr") { inclusive = true }
+                                    }
+                                    "ARBITRO" -> navController.navigate("registro-arbitro/$encodedToken") {
+                                        popUpTo("scan-qr") { inclusive = true }
+                                    }
                                     else -> {
                                         // QR no válido
                                         navController.popBackStack()
                                     }
                                 }
                             },
-                            onError = {
+                            onError = { error ->
+                                // Mostrar error y volver
+                                println("Error al validar QR: $error")
                                 navController.popBackStack()
                             }
                         )
@@ -127,7 +143,15 @@ fun AppNavigation() {
                 "registro-capitan/{token}",
                 arguments = listOf(navArgument("token") { type = NavType.StringType })
             ) { backStackEntry ->
-                val token = backStackEntry.arguments?.getString("token") ?: ""
+                val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
+
+                // Decodificar el token de Base64
+                val token = try {
+                    String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
+                } catch (e: Exception) {
+                    encodedToken // Si falla, usar el original
+                }
+
                 val viewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(navController.context)
                 )
@@ -152,8 +176,16 @@ fun AppNavigation() {
                     navArgument("equipoID") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                val token = backStackEntry.arguments?.getString("token") ?: ""
+                val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
                 val equipoID = backStackEntry.arguments?.getInt("equipoID") ?: 0
+
+                // Decodificar el token de Base64
+                val token = try {
+                    String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
+                } catch (e: Exception) {
+                    encodedToken
+                }
+
                 val viewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(navController.context)
                 )
@@ -176,7 +208,15 @@ fun AppNavigation() {
                 "registro-arbitro/{token}",
                 arguments = listOf(navArgument("token") { type = NavType.StringType })
             ) { backStackEntry ->
-                val token = backStackEntry.arguments?.getString("token") ?: ""
+                val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
+
+                // Decodificar el token de Base64
+                val token = try {
+                    String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
+                } catch (e: Exception) {
+                    encodedToken
+                }
+
                 val viewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(navController.context)
                 )

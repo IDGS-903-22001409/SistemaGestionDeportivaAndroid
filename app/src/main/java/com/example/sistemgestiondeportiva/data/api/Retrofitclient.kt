@@ -8,18 +8,31 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // IMPORTANTE: Cambia esta URL por la URL de tu backend
-    // Si usas el emulador de Android: "http://10.0.2.2:5022/"
-    // Si usas un dispositivo físico: "http://TU_IP_LOCAL:5022/" (ejemplo: "http://192.168.1.100:5022/")
-    // Si tu backend está en HTTPS: "https://tudominio.com/"
+    // ⬇️ CAMBIAR PUERTO A 5022 (HTTP)
     private const val BASE_URL = "http://192.168.137.1:5022/"
 
+    // ⬇️ AGREGAR LOGGING COMPLETO
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        level = HttpLoggingInterceptor.Level.BODY  // Muestra todo: headers, body, etc.
     }
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
+        .addInterceptor { chain ->
+            val request = chain.request()
+            android.util.Log.d("RETROFIT", "=== REQUEST ===")
+            android.util.Log.d("RETROFIT", "URL: ${request.url}")
+            android.util.Log.d("RETROFIT", "Method: ${request.method}")
+            android.util.Log.d("RETROFIT", "Headers: ${request.headers}")
+
+            val response = chain.proceed(request)
+
+            android.util.Log.d("RETROFIT", "=== RESPONSE ===")
+            android.util.Log.d("RETROFIT", "Code: ${response.code}")
+            android.util.Log.d("RETROFIT", "Message: ${response.message}")
+
+            response
+        }
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)

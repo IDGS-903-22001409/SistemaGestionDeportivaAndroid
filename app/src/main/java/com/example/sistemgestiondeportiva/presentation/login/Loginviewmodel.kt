@@ -10,6 +10,8 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
+
 
 class LoginViewModel(private val context: Context) : ViewModel() {
 
@@ -62,29 +64,43 @@ class LoginViewModel(private val context: Context) : ViewModel() {
             try {
                 _isLoading.value = true
 
-                // Intentar parsear el QR como JSON
-                val qrData = try {
-                    gson.fromJson(qrCode, QRData::class.java)
-                } catch (e: Exception) {
-                    null
-                }
+                Log.d("QR_SCAN", "=== INICIO VALIDACIÓN QR ===")
+                Log.d("QR_SCAN", "QR escaneado: $qrCode")
 
-                if (qrData != null && qrData.token.isNotBlank()) {
-                    // Validar con el backend
-                    val response = apiService.validarQR(qrData.token)
+                val response = apiService.validarQR(qrCode)
 
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        onSuccess(response.body()!!.data!!)
+                Log.d("QR_SCAN", "Response code: ${response.code()}")
+                Log.d("QR_SCAN", "Response success: ${response.isSuccessful}")
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    Log.d("QR_SCAN", "Response body success: ${body?.success}")
+                    Log.d("QR_SCAN", "Response body data: ${body?.data}")
+
+                    if (body?.success == true && body.data != null) {
+                        val qrData = body.data
+                        Log.d("QR_SCAN", "QR válido - Tipo: ${qrData.type}")
+                        Log.d("QR_SCAN", "Token: ${qrData.token}")
+                        Log.d("QR_SCAN", "EquipoID: ${qrData.equipoID}")
+                        Log.d("QR_SCAN", "=== LLAMANDO onSuccess ===")
+                        onSuccess(qrData)
                     } else {
-                        onError("Código QR inválido o expirado")
+                        Log.e("QR_SCAN", "QRData es null o success es false")
+                        onError("Código QR no válido")
                     }
                 } else {
-                    onError("Código QR no válido")
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("QR_SCAN", "Response error: $errorBody")
+                    onError("Código QR inválido o expirado")
                 }
             } catch (e: Exception) {
+                Log.e("QR_SCAN", "Exception al validar QR", e)
+                Log.e("QR_SCAN", "Message: ${e.message}")
+                Log.e("QR_SCAN", "Stack trace: ${e.stackTraceToString()}")
                 onError("Error al validar QR: ${e.message}")
             } finally {
                 _isLoading.value = false
+                Log.d("QR_SCAN", "=== FIN VALIDACIÓN QR ===")
             }
         }
     }

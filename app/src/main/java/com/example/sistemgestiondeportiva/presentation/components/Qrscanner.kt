@@ -1,6 +1,7 @@
 package com.example.sistemgestiondeportiva.presentation.components
 
 import android.Manifest
+import android.util.Log
 import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -35,9 +36,17 @@ fun QRScannerScreen(
 ) {
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     var hasScanned by remember { mutableStateOf(false) }
+    var scanStatus by remember { mutableStateOf("Esperando QR...") }
+
+    // Log inicial
+    LaunchedEffect(Unit) {
+        Log.d("QR_SCANNER", "=== QRScannerScreen INICIADO ===")
+        Log.d("QR_SCANNER", "Permiso cámara: ${cameraPermissionState.status.isGranted}")
+    }
 
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
+            Log.d("QR_SCANNER", "Solicitando permiso de cámara...")
             cameraPermissionState.launchPermissionRequest()
         }
     }
@@ -47,7 +56,10 @@ fun QRScannerScreen(
             TopAppBar(
                 title = { Text("Escanear QR") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = {
+                        Log.d("QR_SCANNER", "Botón atrás presionado")
+                        onBackClick()
+                    }) {
                         Icon(Icons.Default.ArrowBack, "Volver")
                     }
                 }
@@ -61,12 +73,21 @@ fun QRScannerScreen(
         ) {
             when {
                 cameraPermissionState.status.isGranted -> {
+                    Log.d("QR_SCANNER", "Permiso otorgado, mostrando cámara")
                     CameraPreview(
                         onQRCodeScanned = { qrCode ->
                             if (!hasScanned) {
+                                Log.d("QR_SCANNER", "¡QR DETECTADO! Contenido: $qrCode")
                                 hasScanned = true
+                                scanStatus = "QR detectado, validando..."
                                 onQRCodeScanned(qrCode)
+                            } else {
+                                Log.d("QR_SCANNER", "QR ya fue escaneado, ignorando")
                             }
+                        },
+                        onStatusChange = { status ->
+                            scanStatus = status
+                            Log.d("QR_SCANNER", "Estado: $status")
                         }
                     )
 
@@ -77,20 +98,39 @@ fun QRScannerScreen(
                             .padding(32.dp),
                         contentAlignment = Alignment.BottomCenter
                     ) {
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                            )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                text = "Apunta la cámara al código QR",
-                                modifier = Modifier.padding(16.dp),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "Apunta la cámara al código QR",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = scanStatus,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+
+                            if (hasScanned) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
                 }
                 else -> {
+                    Log.d("QR_SCANNER", "Permiso NO otorgado")
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -103,7 +143,10 @@ fun QRScannerScreen(
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
+                        Button(onClick = {
+                            Log.d("QR_SCANNER", "Solicitando permiso de cámara nuevamente")
+                            cameraPermissionState.launchPermissionRequest()
+                        }) {
                             Text("Otorgar permiso")
                         }
                     }
@@ -115,67 +158,113 @@ fun QRScannerScreen(
 
 @Composable
 fun CameraPreview(
-    onQRCodeScanned: (String) -> Unit
+    onQRCodeScanned: (String) -> Unit,
+    onStatusChange: (String) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    var isProcessing by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        Log.d("QR_SCANNER", "CameraPreview iniciado")
+        onDispose {
+            Log.d("QR_SCANNER", "CameraPreview destruido")
+        }
+    }
 
     AndroidView(
         factory = { ctx ->
+            Log.d("QR_SCANNER", "Creando PreviewView")
             val previewView = PreviewView(ctx)
             val executor = Executors.newSingleThreadExecutor()
             val barcodeScanner = BarcodeScanning.getClient()
 
             cameraProviderFuture.addListener({
-                val cameraProvider = cameraProviderFuture.get()
+                try {
+                    Log.d("QR_SCANNER", "CameraProvider listo")
+                    val cameraProvider = cameraProviderFuture.get()
 
-                val preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
+                    val preview = Preview.Builder()
+                        .build()
+                        .also {
+                            it.setSurfaceProvider(previewView.surfaceProvider)
+                        }
 
-                val imageAnalysis = ImageAnalysis.Builder()
-                    .setTargetResolution(Size(1280, 720))
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                    .also { analysis ->
-                        analysis.setAnalyzer(executor) { imageProxy ->
-                            val mediaImage = imageProxy.image
-                            if (mediaImage != null) {
-                                val image = InputImage.fromMediaImage(
-                                    mediaImage,
-                                    imageProxy.imageInfo.rotationDegrees
-                                )
+                    val imageAnalysis = ImageAnalysis.Builder()
+                        .setTargetResolution(Size(1280, 720))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                        .also { analysis ->
+                            analysis.setAnalyzer(executor) { imageProxy ->
+                                if (isProcessing) {
+                                    imageProxy.close()
+                                    return@setAnalyzer
+                                }
 
-                                barcodeScanner.process(image)
-                                    .addOnSuccessListener { barcodes ->
-                                        barcodes.firstOrNull()?.let { barcode ->
-                                            if (barcode.format == Barcode.FORMAT_QR_CODE) {
-                                                barcode.rawValue?.let { qrCode ->
-                                                    onQRCodeScanned(qrCode)
+                                val mediaImage = imageProxy.image
+                                if (mediaImage != null) {
+                                    val image = InputImage.fromMediaImage(
+                                        mediaImage,
+                                        imageProxy.imageInfo.rotationDegrees
+                                    )
+
+                                    isProcessing = true
+                                    barcodeScanner.process(image)
+                                        .addOnSuccessListener { barcodes ->
+                                            if (barcodes.isNotEmpty()) {
+                                                Log.d("QR_SCANNER", "Códigos detectados: ${barcodes.size}")
+                                                barcodes.forEach { barcode ->
+                                                    Log.d("QR_SCANNER", "Tipo: ${barcode.format}, Valor: ${barcode.rawValue}")
+                                                }
+                                            }
+
+                                            barcodes.firstOrNull()?.let { barcode ->
+                                                if (barcode.format == Barcode.FORMAT_QR_CODE) {
+                                                    barcode.rawValue?.let { qrCode ->
+                                                        Log.d("QR_SCANNER", "✅ QR Code válido encontrado: $qrCode")
+                                                        onQRCodeScanned(qrCode)
+                                                        onStatusChange("QR detectado!")
+                                                    }
+                                                } else {
+                                                    Log.d("QR_SCANNER", "No es un QR Code, es: ${barcode.format}")
                                                 }
                                             }
                                         }
-                                    }
-                                    .addOnCompleteListener {
-                                        imageProxy.close()
-                                    }
+                                        .addOnFailureListener { e ->
+                                            Log.e("QR_SCANNER", "Error al procesar imagen", e)
+                                            onStatusChange("Error: ${e.message}")
+                                        }
+                                        .addOnCompleteListener {
+                                            isProcessing = false
+                                            imageProxy.close()
+                                        }
+                                } else {
+                                    isProcessing = false
+                                    imageProxy.close()
+                                }
                             }
                         }
+
+                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                    try {
+                        cameraProvider.unbindAll()
+                        val camera = cameraProvider.bindToLifecycle(
+                            lifecycleOwner,
+                            cameraSelector,
+                            preview,
+                            imageAnalysis
+                        )
+                        Log.d("QR_SCANNER", "Cámara vinculada exitosamente")
+                        onStatusChange("Cámara lista")
+                    } catch (e: Exception) {
+                        Log.e("QR_SCANNER", "Error al vincular cámara", e)
+                        onStatusChange("Error: ${e.message}")
                     }
-
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-                try {
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner,
-                        cameraSelector,
-                        preview,
-                        imageAnalysis
-                    )
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e("QR_SCANNER", "Error al obtener CameraProvider", e)
+                    onStatusChange("Error: ${e.message}")
                 }
             }, ContextCompat.getMainExecutor(ctx))
 
