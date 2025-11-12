@@ -53,7 +53,7 @@ fun QRScannerScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
                 title = { Text("Escanear QR") },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -102,11 +102,7 @@ fun QRScannerScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Card(
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                                )
-                            ) {
+                            com.example.sistemgestiondeportiva.presentation.components.GlassCard() {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
@@ -143,10 +139,13 @@ fun QRScannerScreen(
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            Log.d("QR_SCANNER", "Solicitando permiso de cámara nuevamente")
-                            cameraPermissionState.launchPermissionRequest()
-                        }) {
+                        com.example.sistemgestiondeportiva.presentation.components.NeonButton(
+                            onClick = {
+                                Log.d("QR_SCANNER", "Solicitando permiso de cámara nuevamente")
+                                cameraPermissionState.launchPermissionRequest()
+                            },
+                            outline = true
+                        ) {
                             Text("Otorgar permiso")
                         }
                     }

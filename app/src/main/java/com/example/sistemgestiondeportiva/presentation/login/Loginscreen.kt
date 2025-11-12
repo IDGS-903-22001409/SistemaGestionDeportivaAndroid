@@ -54,7 +54,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
@@ -66,7 +66,7 @@ fun LoginScreen(
                 enabled = !isLoading
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
@@ -89,21 +89,18 @@ fun LoginScreen(
             )
 
             if (showError) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    ),
+                com.example.sistemgestiondeportiva.presentation.components.GlassCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = errorMessage,
                         modifier = Modifier.padding(12.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
 
-            Button(
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                 onClick = {
                     if (email.isBlank() || password.isBlank()) {
                         showError = true
@@ -143,10 +140,11 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            OutlinedButton(
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                 onClick = onScanQR,
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
+                enabled = !isLoading,
+                outline = true
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,

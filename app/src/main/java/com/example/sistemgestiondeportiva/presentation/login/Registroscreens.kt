@@ -38,7 +38,7 @@ fun RegistroCapitanScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
                 title = { Text("Registro de Capitán") }
             )
         }
@@ -65,7 +65,7 @@ fun RegistroCapitanScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre completo") },
@@ -73,7 +73,7 @@ fun RegistroCapitanScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
@@ -82,7 +82,7 @@ fun RegistroCapitanScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono (opcional)") },
@@ -91,7 +91,7 @@ fun RegistroCapitanScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
@@ -108,7 +108,7 @@ fun RegistroCapitanScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text("Confirmar contraseña") },
@@ -124,7 +124,7 @@ fun RegistroCapitanScreen(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = nombreEquipo,
                 onValueChange = { nombreEquipo = it },
                 label = { Text("Nombre del equipo") },
@@ -147,7 +147,7 @@ fun RegistroCapitanScreen(
                 }
             }
 
-            Button(
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                 onClick = {
                     when {
                         nombre.isBlank() || email.isBlank() || password.isBlank() || nombreEquipo.isBlank() -> {
@@ -193,7 +193,10 @@ fun RegistroCapitanScreen(
                 }
             }
 
-            TextButton(onClick = onBackClick) {
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
+                onClick = onBackClick,
+                outline = true
+            ) {
                 Text("Cancelar")
             }
         }
@@ -226,7 +229,7 @@ fun RegistroJugadorScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
                 title = { Text("Registro de Jugador") }
             )
         }
@@ -245,7 +248,7 @@ fun RegistroJugadorScreen(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre completo") },
@@ -253,7 +256,7 @@ fun RegistroJugadorScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
@@ -262,7 +265,7 @@ fun RegistroJugadorScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono (opcional)") },
@@ -271,7 +274,7 @@ fun RegistroJugadorScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
@@ -288,7 +291,7 @@ fun RegistroJugadorScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text("Confirmar contraseña") },
@@ -304,7 +307,7 @@ fun RegistroJugadorScreen(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = numeroCamiseta,
                 onValueChange = { if (it.length <= 3 && it.all { char -> char.isDigit() }) numeroCamiseta = it },
                 label = { Text("Número de camiseta") },
@@ -358,7 +361,7 @@ fun RegistroJugadorScreen(
                 }
             }
 
-            Button(
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                 onClick = {
                     when {
                         nombre.isBlank() || email.isBlank() || password.isBlank() || numeroCamiseta.isBlank() || posicion.isBlank() -> {
@@ -406,7 +409,10 @@ fun RegistroJugadorScreen(
                 }
             }
 
-            TextButton(onClick = onBackClick) {
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
+                onClick = onBackClick,
+                outline = true
+            ) {
                 Text("Cancelar")
             }
         }
@@ -435,7 +441,7 @@ fun RegistroArbitroScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
                 title = { Text("Registro de Árbitro") }
             )
         }
@@ -454,7 +460,7 @@ fun RegistroArbitroScreen(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre completo") },
@@ -462,7 +468,7 @@ fun RegistroArbitroScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
@@ -471,7 +477,7 @@ fun RegistroArbitroScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono (opcional)") },
@@ -480,7 +486,7 @@ fun RegistroArbitroScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = licencia,
                 onValueChange = { licencia = it },
                 label = { Text("Número de licencia") },
@@ -488,7 +494,7 @@ fun RegistroArbitroScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
@@ -505,7 +511,7 @@ fun RegistroArbitroScreen(
                 singleLine = true
             )
 
-            OutlinedTextField(
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text("Confirmar contraseña") },
@@ -529,7 +535,7 @@ fun RegistroArbitroScreen(
                 }
             }
 
-            Button(
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                 onClick = {
                     when {
                         nombre.isBlank() || email.isBlank() || password.isBlank() || licencia.isBlank() -> {
@@ -575,7 +581,10 @@ fun RegistroArbitroScreen(
                 }
             }
 
-            TextButton(onClick = onBackClick) {
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
+                onClick = onBackClick,
+                outline = true
+            ) {
                 Text("Cancelar")
             }
         }

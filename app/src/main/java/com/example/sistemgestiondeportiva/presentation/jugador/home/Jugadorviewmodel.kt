@@ -70,6 +70,41 @@ class JugadorViewModel(private val context: Context) : ViewModel() {
         }
     }
 
+    fun actualizarPerfilCompleto(
+        nombre: String,
+        email: String,
+        telefono: String?,
+        numeroCamiseta: Int,
+        posicion: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val token = userPreferences.token.first()
+                if (token != null) {
+                    val request = UpdatePerfilCompletoRequest(
+                        nombre = nombre,
+                        email = email,
+                        telefono = telefono,
+                        numeroCamiseta = numeroCamiseta,
+                        posicion = posicion
+                    )
+                    val response = apiService.actualizarPerfilCompleto(token, request)
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        cargarPerfilJugador(token)
+                        onSuccess()
+                    } else {
+                        onError(response.body()?.message ?: "Error al actualizar")
+                    }
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+            }
+        }
+    }
+
     private suspend fun cargarEstadisticas(token: String) {
         try {
             val response = apiService.obtenerEstadisticasJugador(token)

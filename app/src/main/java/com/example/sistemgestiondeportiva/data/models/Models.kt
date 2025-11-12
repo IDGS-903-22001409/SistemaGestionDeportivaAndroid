@@ -183,3 +183,10 @@ data class GenericResponse(
     @SerializedName("success") val success: Boolean,
     @SerializedName("message") val message: String?
 )
+data class UpdatePerfilCompletoRequest(
+    @SerializedName("nombre") val nombre: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("telefono") val telefono: String?,
+    @SerializedName("numeroCamiseta") val numeroCamiseta: Int,
+    @SerializedName("posicion") val posicion: String
+)

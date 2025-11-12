@@ -36,8 +36,9 @@ fun JugadorHomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
                 title = { Text("Inicio") },
+                navigationIcon = null,
                 actions = {
                     IconButton(onClick = onNavigateToProfile) {
                         Icon(Icons.Default.Person, "Perfil")
@@ -91,7 +92,7 @@ fun JugadorHomeScreen(
 
                 if (proximosPartidos.isEmpty()) {
                     item {
-                        Card(
+                        com.example.sistemgestiondeportiva.presentation.components.GlassCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Box(
@@ -215,7 +216,7 @@ fun EstadisticasBrevesCard(
     estadisticas: EstadisticasJugador,
     onVerMas: () -> Unit
 ) {
-    Card(
+    com.example.sistemgestiondeportiva.presentation.components.GlassCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -275,6 +276,180 @@ fun EstadisticasBrevesCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun JugadorHomeScreen(
+    viewModel: JugadorViewModel,
+    onNavigateToStats: () -> Unit,
+    onNavigateToMatches: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToGenerarQR: () -> Unit  // ⬅️ Nueva función
+) {
+    val jugador by viewModel.jugador.collectAsState()
+    val estadisticas by viewModel.estadisticas.collectAsState()
+    val proximosPartidos by viewModel.proximosPartidos.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarDatos()
+    }
+
+    Scaffold(
+        topBar = {
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
+                title = { Text("Inicio") },
+                navigationIcon = null,
+                actions = {
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(Icons.Default.Person, "Perfil")
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            // ⬇️ Botón FAB solo para capitanes
+            if (jugador?.esCapitan == true) {
+                ExtendedFloatingActionButton(
+                    onClick = onNavigateToGenerarQR,
+                    icon = { Icon(Icons.Default.Add, "Generar QR") },
+                    text = { Text("Invitar Jugador") }
+                )
+            }
+        }
+    ) { padding ->
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Información del jugador
+                item {
+                    jugador?.let { j ->
+                        JugadorInfoCard(jugador = j)
+                    }
+                }
+
+                // ⬇️ Tarjeta especial para capitán
+                if (jugador?.esCapitan == true) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            ),
+                            onClick = onNavigateToGenerarQR
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Star,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(32.dp),
+                                        tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            "Panel de Capitán",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            "Invita jugadores a tu equipo",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                }
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Estadísticas breves
+                item {
+                    estadisticas?.let { stats ->
+                        EstadisticasBrevesCard(
+                            estadisticas = stats,
+                            onVerMas = onNavigateToStats
+                        )
+                    }
+                }
+
+                // Próximos partidos
+                item {
+                    Text(
+                        "Próximos Partidos",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                if (proximosPartidos.isEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "No hay próximos partidos programados",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    items(proximosPartidos.take(3)) { partido ->
+                        PartidoCard(partido = partido)
+                    }
+
+                    if (proximosPartidos.size > 3) {
+                        item {
+                            TextButton(
+                                onClick = onNavigateToMatches,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Ver todos los partidos")
+                                Icon(Icons.Default.Add, null)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

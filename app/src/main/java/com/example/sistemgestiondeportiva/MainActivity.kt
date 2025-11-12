@@ -27,16 +27,19 @@ import com.example.sistemgestiondeportiva.theme.AplicationDemoTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import android.util.Base64
+import com.example.sistemgestiondeportiva.presentation.jugador.equipo.JugadorGenerarQRScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.perfil.JugadorEditarPerfilScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.perfil.JugadorPerfilScreen
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AplicationDemoTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+            AplicationDemoTheme(darkTheme = true, dynamicColor = false) {
+                // Futuristic gradient background applied globally
+                com.example.sistemgestiondeportiva.presentation.components.FuturisticBackground(
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     AppNavigation()
                 }
@@ -249,7 +252,20 @@ fun AppNavigation() {
                     },
                     onNavigateToProfile = {
                         navController.navigate("jugador/perfil")
+                    },
+                    onNavigateToGenerarQR = {  // ⬅️ Nueva navegación
+                        navController.navigate("jugador/generar-qr")
                     }
+                )
+            }
+
+            composable("jugador/generar-qr") {
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                JugadorGenerarQRScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -262,7 +278,33 @@ fun AppNavigation() {
             }
 
             composable("jugador/perfil") {
-                // TODO: Implementar pantalla de perfil
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                JugadorPerfilScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onEditProfile = { navController.navigate("jugador/editar-perfil") },
+                    onLogout = {
+                        scope.launch {
+                            userPreferences.clearAuthData()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable("jugador/editar-perfil") {
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                JugadorEditarPerfilScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() }
+                )
             }
 
             // Árbitro

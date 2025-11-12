@@ -115,4 +115,10 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("id") eventoID: Int
     ): Response<GenericResponse>
+
+    @PUT("api/jugador/actualizar-perfil-completo")
+    suspend fun actualizarPerfilCompleto(
+        @Header("Authorization") token: String,
+        @Body request: UpdatePerfilCompletoRequest
+    ): Response<GenericResponse>
 }

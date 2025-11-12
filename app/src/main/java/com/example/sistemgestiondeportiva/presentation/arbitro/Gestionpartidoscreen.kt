@@ -36,7 +36,7 @@ fun GestionPartidoScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
                 title = { Text("Gestión de Partido") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -231,7 +231,7 @@ fun GestionPartidoScreen(
 
 @Composable
 fun PartidoInfoCard(partido: Partido) {
-    Card(
+    com.example.sistemgestiondeportiva.presentation.components.GlassCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -331,7 +331,7 @@ fun ControlesPartidoCard(
     onIniciar: () -> Unit,
     onFinalizar: () -> Unit
 ) {
-    Card(
+    com.example.sistemgestiondeportiva.presentation.components.GlassCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -408,7 +408,7 @@ fun EventoCard(
     evento: EventoPartido,
     onEliminar: () -> Unit
 ) {
-    Card(
+    com.example.sistemgestiondeportiva.presentation.components.GlassCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -567,7 +567,7 @@ fun RegistrarEventoDialog(
                 }
 
                 // Minuto
-                OutlinedTextField(
+                com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                     value = minuto,
                     onValueChange = { if (it.all { char -> char.isDigit() }) minuto = it },
                     label = { Text("Minuto") },
@@ -576,26 +576,27 @@ fun RegistrarEventoDialog(
                 )
 
                 // Descripción opcional
-                OutlinedTextField(
+                com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                     value = descripcion,
                     onValueChange = { descripcion = it },
                     label = { Text("Descripción (opcional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 2
+                    singleLine = false
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedButton(
+                    com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                         onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        outline = true
                     ) {
                         Text("Cancelar")
                     }
 
-                    Button(
+                    com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                         onClick = {
                             // Por ahora, usar un jugadorID ficticio (1)
                             // En producción, deberías tener un selector de jugadores

@@ -33,8 +33,9 @@ fun ArbitroHomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
                 title = { Text("Inicio - Árbitro") },
+                navigationIcon = null,
                 actions = {
                     IconButton(onClick = onNavigateToProfile) {
                         Icon(Icons.Default.Person, "Perfil")
@@ -85,7 +86,7 @@ fun ArbitroHomeScreen(
 
                 if (proximosPartidos.isEmpty()) {
                     item {
-                        Card(
+                        com.example.sistemgestiondeportiva.presentation.components.GlassCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Box(
@@ -156,7 +157,7 @@ fun ArbitroInfoCard(arbitro: Arbitro) {
 
 @Composable
 fun ArbitroEstadisticasCard(estadisticas: EstadisticasArbitro) {
-    Card(
+    com.example.sistemgestiondeportiva.presentation.components.GlassCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -259,9 +260,8 @@ fun PartidoArbitroCard(
         partido.fechaPartido
     }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+    com.example.sistemgestiondeportiva.presentation.components.GlassCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
