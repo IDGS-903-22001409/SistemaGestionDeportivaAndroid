@@ -18,18 +18,23 @@ import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroHomeScreen
 import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroViewModel
 import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroViewModelFactory
 import com.example.sistemgestiondeportiva.presentation.arbitro.GestionPartidoScreen
+import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroPerfilScreen
 import com.example.sistemgestiondeportiva.presentation.components.QRScannerScreen
 import com.example.sistemgestiondeportiva.presentation.jugador.home.JugadorHomeScreen
 import com.example.sistemgestiondeportiva.presentation.jugador.home.JugadorViewModel
 import com.example.sistemgestiondeportiva.presentation.jugador.home.JugadorViewModelFactory
+import com.example.sistemgestiondeportiva.presentation.jugador.equipo.JugadorGenerarQRScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.equipo.JugadorEquipoScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.estadisticas.JugadorEstadisticasScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.partidos.JugadorPartidosScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.partidos.JugadorDetallePartidoScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.perfil.JugadorEditarPerfilScreen
+import com.example.sistemgestiondeportiva.presentation.jugador.perfil.JugadorPerfilScreen
 import com.example.sistemgestiondeportiva.presentation.login.*
 import com.example.sistemgestiondeportiva.theme.AplicationDemoTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import android.util.Base64
-import com.example.sistemgestiondeportiva.presentation.jugador.equipo.JugadorGenerarQRScreen
-import com.example.sistemgestiondeportiva.presentation.jugador.perfil.JugadorEditarPerfilScreen
-import com.example.sistemgestiondeportiva.presentation.jugador.perfil.JugadorPerfilScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -75,7 +80,9 @@ fun AppNavigation() {
             navController = navController,
             startDestination = startDestination!!
         ) {
-            // Login y registro
+            // ========================================
+            // LOGIN Y REGISTRO
+            // ========================================
             composable("login") {
                 val viewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(navController.context)
@@ -124,13 +131,11 @@ fun AppNavigation() {
                                         popUpTo("scan-qr") { inclusive = true }
                                     }
                                     else -> {
-                                        // QR no válido
                                         navController.popBackStack()
                                     }
                                 }
                             },
                             onError = { error ->
-                                // Mostrar error y volver
                                 println("Error al validar QR: $error")
                                 navController.popBackStack()
                             }
@@ -148,11 +153,10 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
 
-                // Decodificar el token de Base64
                 val token = try {
                     String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
                 } catch (e: Exception) {
-                    encodedToken // Si falla, usar el original
+                    encodedToken
                 }
 
                 val viewModel: LoginViewModel = viewModel(
@@ -182,7 +186,6 @@ fun AppNavigation() {
                 val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
                 val equipoID = backStackEntry.arguments?.getInt("equipoID") ?: 0
 
-                // Decodificar el token de Base64
                 val token = try {
                     String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
                 } catch (e: Exception) {
@@ -213,7 +216,6 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
 
-                // Decodificar el token de Base64
                 val token = try {
                     String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
                 } catch (e: Exception) {
@@ -237,7 +239,9 @@ fun AppNavigation() {
                 )
             }
 
-            // Jugador
+            // ========================================
+            // JUGADOR - PANTALLAS
+            // ========================================
             composable("jugador/home") {
                 val viewModel: JugadorViewModel = viewModel(
                     factory = JugadorViewModelFactory(navController.context)
@@ -253,9 +257,61 @@ fun AppNavigation() {
                     onNavigateToProfile = {
                         navController.navigate("jugador/perfil")
                     },
-                    onNavigateToGenerarQR = {  // ⬅️ Nueva navegación
+                    onNavigateToGenerarQR = {
                         navController.navigate("jugador/generar-qr")
                     }
+                )
+            }
+
+            // ⭐ NUEVA: Estadísticas del Jugador
+            composable("jugador/estadisticas") {
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                JugadorEstadisticasScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // ⭐ NUEVA: Lista de Partidos del Jugador
+            composable("jugador/partidos") {
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                JugadorPartidosScreen(
+                    viewModel = viewModel,
+                    onNavigateToPartido = { partidoID ->  // ⬅️ CAMBIO AQUÍ
+                        navController.navigate("jugador/partido/$partidoID")
+                    },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // ⭐ NUEVA: Detalle de Partido del Jugador
+            composable(
+                "jugador/partido/{partidoID}",
+                arguments = listOf(navArgument("partidoID") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val partidoID = backStackEntry.arguments?.getInt("partidoID") ?: 0
+                val viewModel: ArbitroViewModel = viewModel(
+                    factory = ArbitroViewModelFactory(navController.context)
+                )
+                JugadorDetallePartidoScreen(
+                    partidoID = partidoID,
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // ⭐ NUEVA: Equipo y Compañeros
+            composable("jugador/equipo") {
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                JugadorEquipoScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -267,14 +323,6 @@ fun AppNavigation() {
                     viewModel = viewModel,
                     onBackClick = { navController.popBackStack() }
                 )
-            }
-
-            composable("jugador/estadisticas") {
-                // TODO: Implementar pantalla de estadísticas
-            }
-
-            composable("jugador/partidos") {
-                // TODO: Implementar pantalla de partidos
             }
 
             composable("jugador/perfil") {
@@ -307,7 +355,9 @@ fun AppNavigation() {
                 )
             }
 
-            // Árbitro
+            // ========================================
+            // ÁRBITRO - PANTALLAS
+            // ========================================
             composable("arbitro/home") {
                 val viewModel: ArbitroViewModel = viewModel(
                     factory = ArbitroViewModelFactory(navController.context)
@@ -340,8 +390,23 @@ fun AppNavigation() {
                 )
             }
 
+            // ⭐ NUEVA: Perfil del Árbitro
             composable("arbitro/perfil") {
-                // TODO: Implementar pantalla de perfil
+                val viewModel: ArbitroViewModel = viewModel(
+                    factory = ArbitroViewModelFactory(navController.context)
+                )
+                ArbitroPerfilScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onLogout = {
+                        scope.launch {
+                            userPreferences.clearAuthData()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
+                )
             }
         }
     }
