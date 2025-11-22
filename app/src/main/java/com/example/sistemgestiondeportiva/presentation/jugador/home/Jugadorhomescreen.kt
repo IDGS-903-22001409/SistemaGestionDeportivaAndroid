@@ -23,7 +23,9 @@ fun JugadorHomeScreen(
     viewModel: JugadorViewModel,
     onNavigateToStats: () -> Unit,
     onNavigateToMatches: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onNavigateToGenerarQR: () -> Unit,
+    onNavigateToEquipo: () -> Unit
 ) {
     val jugador by viewModel.jugador.collectAsState()
     val estadisticas by viewModel.estadisticas.collectAsState()
@@ -40,11 +42,23 @@ fun JugadorHomeScreen(
                 title = { Text("Inicio") },
                 navigationIcon = null,
                 actions = {
+                    IconButton(onClick = onNavigateToEquipo) {
+                        Icon(Icons.Default.Face, "Mi Equipo")
+                    }
                     IconButton(onClick = onNavigateToProfile) {
                         Icon(Icons.Default.Person, "Perfil")
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            if (jugador?.esCapitan == true) {
+                ExtendedFloatingActionButton(
+                    onClick = onNavigateToGenerarQR,
+                    icon = { Icon(Icons.Default.Add, "Generar QR") },
+                    text = { Text("Invitar Jugador") }
+                )
+            }
         }
     ) { padding ->
         if (isLoading) {

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.example.sistemgestiondeportiva.data.models.*
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.foundation.clickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -251,7 +252,7 @@ fun ArbitroEstadisticasCard(estadisticas: EstadisticasArbitro) {
 @Composable
 fun PartidoArbitroCard(
     partido: Partido,
-    onClick: () -> Unit
+    onClick: () -> Unit  // ⬅️ Ya existe este parámetro
 ) {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val fecha = try {
@@ -261,7 +262,10 @@ fun PartidoArbitroCard(
     }
 
     com.example.sistemgestiondeportiva.presentation.components.GlassCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            // ⬇️ AGREGAR ESTO - hacer toda la tarjeta clickeable
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -320,7 +324,7 @@ fun PartidoArbitroCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.Info,
+                    Icons.Default.DateRange,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -375,9 +379,10 @@ fun PartidoArbitroCard(
 
                 if (partido.estado != "Finalizado") {
                     Icon(
-                        Icons.Default.Add,
+                        Icons.Default.KeyboardArrowRight,
                         contentDescription = "Ver partido",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }

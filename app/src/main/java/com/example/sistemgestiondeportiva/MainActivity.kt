@@ -261,11 +261,23 @@ fun AppNavigation() {
                     },
                     onNavigateToGenerarQR = {
                         navController.navigate("jugador/generar-qr")
+                    },
+                    onNavigateToEquipo = {  // ⬅️ NUEVO
+                        navController.navigate("jugador/equipo")
                     }
                 )
             }
 
-            // ⭐ NUEVA: Estadísticas del Jugador
+            composable("jugador/equipo") {
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                JugadorEquipoScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
             composable("jugador/estadisticas") {
                 val viewModel: JugadorViewModel = viewModel(
                     factory = JugadorViewModelFactory(navController.context)
