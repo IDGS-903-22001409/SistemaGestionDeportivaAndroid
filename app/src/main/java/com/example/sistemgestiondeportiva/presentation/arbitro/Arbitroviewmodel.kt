@@ -217,4 +217,84 @@ class ArbitroViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
+
+    private val _jugadoresPartido = MutableStateFlow<JugadoresPartido?>(null)
+    val jugadoresPartido: StateFlow<JugadoresPartido?> = _jugadoresPartido
+
+    fun cargarJugadoresPartido(partidoID: Int) {
+        viewModelScope.launch {
+            try {
+                val token = userPreferences.token.first()
+                if (token != null) {
+                    val response = apiService.obtenerJugadoresPartido(token, partidoID)
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        _jugadoresPartido.value = response.body()!!.data
+                    }
+                }
+            } catch (e: Exception) {
+                _error.value = "Error al cargar jugadores: ${e.message}"
+            }
+        }
+    }
+
+    fun cambiarPassword(
+        passwordActual: String,
+        passwordNuevo: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val token = userPreferences.token.first()
+                if (token != null) {
+                    val request = mapOf(
+                        "passwordActual" to passwordActual,
+                        "passwordNuevo" to passwordNuevo
+                    )
+
+                    // Necesitas agregar este endpoint en ApiService.kt:
+                    val response = apiService.cambiarPassword(token, request)
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        onSuccess()
+                    } else {
+                        onError(response.body()?.message ?: "Error al cambiar contraseña")
+                    }
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+            }
+        }
+    }
+
+    fun actualizarPerfil(
+        nombre: String,
+        email: String,
+        telefono: String?,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val token = userPreferences.token.first()
+                if (token != null) {
+                    val request = ActualizarArbitroRequest(
+                        nombre = nombre,
+                        email = email,
+                        telefono = telefono
+                    )
+                    val response = apiService.actualizarPerfilArbitro(token, request)
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        cargarPerfilArbitro(token)
+                        onSuccess()
+                    } else {
+                        onError(response.body()?.message ?: "Error al actualizar")
+                    }
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+            }
+        }
+    }
 }

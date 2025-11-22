@@ -190,3 +190,27 @@ data class UpdatePerfilCompletoRequest(
     @SerializedName("numeroCamiseta") val numeroCamiseta: Int,
     @SerializedName("posicion") val posicion: String
 )
+
+data class JugadoresPartido(
+    @SerializedName("equipoLocal") val equipoLocal: EquipoConJugadores,
+    @SerializedName("equipoVisitante") val equipoVisitante: EquipoConJugadores
+)
+
+data class EquipoConJugadores(
+    @SerializedName("equipoID") val equipoID: Int,
+    @SerializedName("nombreEquipo") val nombreEquipo: String,
+    @SerializedName("jugadores") val jugadores: List<JugadorSimple>
+)
+
+data class JugadorSimple(
+    @SerializedName("jugadorID") val jugadorID: Int,
+    @SerializedName("numeroCamiseta") val numeroCamiseta: Int,
+    @SerializedName("posicion") val posicion: String,
+    @SerializedName("nombre") val nombre: String
+)
+
+data class ActualizarArbitroRequest(
+    @SerializedName("nombre") val nombre: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("telefono") val telefono: String?
+)

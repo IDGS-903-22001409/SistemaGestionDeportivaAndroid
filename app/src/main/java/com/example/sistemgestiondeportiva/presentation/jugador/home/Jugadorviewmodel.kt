@@ -216,4 +216,36 @@ class JugadorViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
+
+    // Agregar en JugadorViewModel y ArbitroViewModel:
+
+    fun cambiarPassword(
+        passwordActual: String,
+        passwordNuevo: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val token = userPreferences.token.first()
+                if (token != null) {
+                    val request = mapOf(
+                        "passwordActual" to passwordActual,
+                        "passwordNuevo" to passwordNuevo
+                    )
+
+                    // Necesitas agregar este endpoint en ApiService.kt:
+                    val response = apiService.cambiarPassword(token, request)
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        onSuccess()
+                    } else {
+                        onError(response.body()?.message ?: "Error al cambiar contraseña")
+                    }
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+            }
+        }
+    }
 }

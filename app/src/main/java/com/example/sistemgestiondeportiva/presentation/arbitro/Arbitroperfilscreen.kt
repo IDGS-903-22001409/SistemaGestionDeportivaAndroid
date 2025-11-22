@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 fun ArbitroPerfilScreen(
     viewModel: ArbitroViewModel,
     onBackClick: () -> Unit,
+    onEditProfile: () -> Unit,
+    onChangePassword: () -> Unit,
     onLogout: () -> Unit
 ) {
     val arbitro by viewModel.arbitro.collectAsState()
@@ -35,9 +37,16 @@ fun ArbitroPerfilScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, "Volver")
                     }
+                },
+                actions = {
+                    IconButton(onClick = onEditProfile) {  // ⬅️ USAR EL CALLBACK
+                        Icon(Icons.Default.Edit, "Editar perfil")
+                    }
                 }
             )
         }
+
+
     ) { padding ->
         Column(
             modifier = Modifier
@@ -262,7 +271,17 @@ fun ArbitroPerfilScreen(
                 }
             }
 
-            // Botón cerrar sesión
+            OutlinedButton(
+                onClick = onChangePassword,  // ⬅️ USAR EL CALLBACK
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Lock, "Cambiar contraseña")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cambiar Contraseña")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedButton(
                 onClick = { showLogoutDialog = true },
                 modifier = Modifier.fillMaxWidth(),

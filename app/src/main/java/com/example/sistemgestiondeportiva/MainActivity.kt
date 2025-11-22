@@ -35,7 +35,9 @@ import com.example.sistemgestiondeportiva.theme.AplicationDemoTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import android.util.Base64
-
+import com.example.sistemgestiondeportiva.presentation.arbitro.ArbitroEditarPerfilScreen
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -333,6 +335,7 @@ fun AppNavigation() {
                     viewModel = viewModel,
                     onBackClick = { navController.popBackStack() },
                     onEditProfile = { navController.navigate("jugador/editar-perfil") },
+                    onChangePassword = { navController.navigate("jugador/cambiar-password") }, // ⬅️ AGREGAR
                     onLogout = {
                         scope.launch {
                             userPreferences.clearAuthData()
@@ -390,7 +393,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ⭐ NUEVA: Perfil del Árbitro
             composable("arbitro/perfil") {
                 val viewModel: ArbitroViewModel = viewModel(
                     factory = ArbitroViewModelFactory(navController.context)
@@ -398,6 +400,8 @@ fun AppNavigation() {
                 ArbitroPerfilScreen(
                     viewModel = viewModel,
                     onBackClick = { navController.popBackStack() },
+                    onEditProfile = { navController.navigate("arbitro/editar-perfil") },
+                    onChangePassword = { navController.navigate("arbitro/cambiar-password") }, // ⬅️ AGREGAR
                     onLogout = {
                         scope.launch {
                             userPreferences.clearAuthData()
@@ -406,6 +410,54 @@ fun AppNavigation() {
                             }
                         }
                     }
+                )
+            }
+
+            composable("jugador/cambiar-password") {
+                val viewModel: JugadorViewModel = viewModel(
+                    factory = JugadorViewModelFactory(navController.context)
+                )
+                com.example.sistemgestiondeportiva.presentation.common.CambiarPasswordScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onPasswordChanged = { actual, nuevo ->
+                        suspendCancellableCoroutine { continuation ->
+                            viewModel.cambiarPassword(
+                                passwordActual = actual,
+                                passwordNuevo = nuevo,
+                                onSuccess = { continuation.resume(Result.success("OK")) },
+                                onError = { error -> continuation.resume(Result.failure(Exception(error))) }
+                            )
+                        }
+                    }
+                )
+            }
+
+            composable("arbitro/cambiar-password") {
+                val viewModel: ArbitroViewModel = viewModel(
+                    factory = ArbitroViewModelFactory(navController.context)
+                )
+                com.example.sistemgestiondeportiva.presentation.common.CambiarPasswordScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onPasswordChanged = { actual, nuevo ->
+                        suspendCancellableCoroutine { continuation ->
+                            viewModel.cambiarPassword(
+                                passwordActual = actual,
+                                passwordNuevo = nuevo,
+                                onSuccess = { continuation.resume(Result.success("OK")) },
+                                onError = { error -> continuation.resume(Result.failure(Exception(error))) }
+                            )
+                        }
+                    }
+                )
+            }
+            composable("arbitro/editar-perfil") {
+                val viewModel: ArbitroViewModel = viewModel(
+                    factory = ArbitroViewModelFactory(navController.context)
+                )
+                ArbitroEditarPerfilScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() }
                 )
             }
         }

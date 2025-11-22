@@ -19,6 +19,7 @@ fun JugadorPerfilScreen(
     viewModel: JugadorViewModel,
     onBackClick: () -> Unit,
     onEditProfile: () -> Unit,
+    onChangePassword: () -> Unit,
     onLogout: () -> Unit
 ) {
     val jugador by viewModel.jugador.collectAsState()
@@ -263,7 +264,17 @@ fun JugadorPerfilScreen(
                 }
             }
 
-            // Botón cerrar sesión
+            OutlinedButton(
+                onClick = onChangePassword,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Lock, "Cambiar contraseña")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cambiar Contraseña")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedButton(
                 onClick = { showLogoutDialog = true },
                 modifier = Modifier.fillMaxWidth(),

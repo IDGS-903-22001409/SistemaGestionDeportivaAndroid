@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.sistemgestiondeportiva.data.models.EventoPartido
 import com.example.sistemgestiondeportiva.data.models.Jugador
+import com.example.sistemgestiondeportiva.data.models.JugadorSimple
+import com.example.sistemgestiondeportiva.data.models.JugadoresPartido
 import com.example.sistemgestiondeportiva.data.models.Partido
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,6 +34,7 @@ fun GestionPartidoScreen(
 
     LaunchedEffect(partidoID) {
         viewModel.cargarPartido(partidoID)
+        viewModel.cargarJugadoresPartido(partidoID)
     }
 
     Scaffold(
@@ -150,8 +153,11 @@ fun GestionPartidoScreen(
 
         // Diálogos
         if (showRegistrarEventoDialog && partido != null) {
+            val jugadoresPartido by viewModel.jugadoresPartido.collectAsState() // ⬅️ AGREGAR
+
             RegistrarEventoDialog(
                 partido = partido!!,
+                jugadoresPartido = jugadoresPartido, // ⬅️ PASAR JUGADORES
                 onDismiss = { showRegistrarEventoDialog = false },
                 onConfirm = { jugadorID, tipoEvento, minuto, descripcion ->
                     viewModel.registrarEvento(
@@ -160,9 +166,7 @@ fun GestionPartidoScreen(
                         tipoEvento = tipoEvento,
                         minuto = minuto,
                         descripcion = descripcion,
-                        onSuccess = {
-                            showRegistrarEventoDialog = false
-                        },
+                        onSuccess = { showRegistrarEventoDialog = false },
                         onError = {}
                     )
                 }
@@ -478,33 +482,34 @@ fun EventoCard(
     }
 }
 
+// Reemplazar el RegistrarEventoDialog completo en Gestionpartidoscreen.kt
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrarEventoDialog(
     partido: Partido,
+    jugadoresPartido: JugadoresPartido?,
     onDismiss: () -> Unit,
     onConfirm: (jugadorID: Int, tipoEvento: String, minuto: Int, descripcion: String?) -> Unit
 ) {
     var equipoSeleccionado by remember { mutableStateOf("Local") }
-    var jugadorSeleccionado by remember { mutableStateOf<Jugador?>(null) }
+    var jugadorSeleccionado by remember { mutableStateOf<JugadorSimple?>(null) }
     var tipoEvento by remember { mutableStateOf("Gol") }
     var minuto by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
+    var expandedJugador by remember { mutableStateOf(false) }
+    var expandedTipo by remember { mutableStateOf(false) }
 
-    val jugadores = remember(equipoSeleccionado) {
-        if (equipoSeleccionado == "Local") {
-            partido.equipoLocal?.let { emptyList<Jugador>() } ?: emptyList()
-        } else {
-            partido.equipoVisitante?.let { emptyList<Jugador>() } ?: emptyList()
-        }
+    val jugadoresDisponibles = remember(equipoSeleccionado, jugadoresPartido) {
+        if (jugadoresPartido == null) emptyList()
+        else if (equipoSeleccionado == "Local") jugadoresPartido.equipoLocal.jugadores
+        else jugadoresPartido.equipoVisitante.jugadores
     }
 
     val tiposEvento = listOf("Gol", "Asistencia", "TarjetaAmarilla", "TarjetaRoja")
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -522,20 +527,70 @@ fun RegistrarEventoDialog(
                 ) {
                     FilterChip(
                         selected = equipoSeleccionado == "Local",
-                        onClick = { equipoSeleccionado = "Local" },
+                        onClick = {
+                            equipoSeleccionado = "Local"
+                            jugadorSeleccionado = null
+                        },
                         label = { Text(partido.equipoLocal?.nombreEquipo ?: "Local") },
                         modifier = Modifier.weight(1f)
                     )
                     FilterChip(
                         selected = equipoSeleccionado == "Visitante",
-                        onClick = { equipoSeleccionado = "Visitante" },
+                        onClick = {
+                            equipoSeleccionado = "Visitante"
+                            jugadorSeleccionado = null
+                        },
                         label = { Text(partido.equipoVisitante?.nombreEquipo ?: "Visitante") },
                         modifier = Modifier.weight(1f)
                     )
                 }
 
+                // Selector de jugador
+                if (jugadoresDisponibles.isEmpty()) {
+                    Text(
+                        "Cargando jugadores...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedJugador,
+                        onExpandedChange = { expandedJugador = !expandedJugador }
+                    ) {
+                        OutlinedTextField(
+                            value = jugadorSeleccionado?.let {
+                                "#${it.numeroCamiseta} - ${it.nombre}"
+                            } ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Jugador") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedJugador)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedJugador,
+                            onDismissRequest = { expandedJugador = false }
+                        ) {
+                            jugadoresDisponibles.forEach { jugador ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text("#${jugador.numeroCamiseta} - ${jugador.nombre} (${jugador.posicion})")
+                                    },
+                                    onClick = {
+                                        jugadorSeleccionado = jugador
+                                        expandedJugador = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Tipo de evento
-                var expandedTipo by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = expandedTipo,
                     onExpandedChange = { expandedTipo = !expandedTipo }
@@ -581,7 +636,8 @@ fun RegistrarEventoDialog(
                     onValueChange = { descripcion = it },
                     label = { Text("Descripción (opcional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = false
+                    singleLine = false,
+                    maxLines = 3
                 )
 
                 Row(
@@ -598,19 +654,19 @@ fun RegistrarEventoDialog(
 
                     com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                         onClick = {
-                            // Por ahora, usar un jugadorID ficticio (1)
-                            // En producción, deberías tener un selector de jugadores
-                            if (minuto.isNotBlank()) {
-                                onConfirm(
-                                    1, // jugadorID temporal
-                                    tipoEvento,
-                                    minuto.toInt(),
-                                    descripcion.ifBlank { null }
-                                )
+                            jugadorSeleccionado?.let { jugador ->
+                                if (minuto.isNotBlank()) {
+                                    onConfirm(
+                                        jugador.jugadorID,
+                                        tipoEvento,
+                                        minuto.toInt(),
+                                        descripcion.ifBlank { null }
+                                    )
+                                }
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        enabled = minuto.isNotBlank()
+                        enabled = jugadorSeleccionado != null && minuto.isNotBlank()
                     ) {
                         Text("Registrar")
                     }

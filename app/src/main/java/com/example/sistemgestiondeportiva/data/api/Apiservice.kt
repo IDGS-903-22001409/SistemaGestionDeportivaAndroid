@@ -121,4 +121,25 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: UpdatePerfilCompletoRequest
     ): Response<GenericResponse>
+
+    @GET("api/partido/{id}/jugadores")
+    suspend fun obtenerJugadoresPartido(
+        @Header("Authorization") token: String,
+        @Path("id") partidoID: Int
+    ): Response<ApiResponse<JugadoresPartido>>
+
+    @PUT("api/usuario/cambiar-password")
+    suspend fun cambiarPassword(
+        @Header("Authorization") token: String,
+        @Body request: Map<String, String>
+    ): Response<GenericResponse>
+
+    // Agregar en ApiService.kt:
+
+    @PUT("api/arbitro/actualizar-perfil")
+    suspend fun actualizarPerfilArbitro(
+        @Header("Authorization") token: String,
+        @Body request: ActualizarArbitroRequest
+    ): Response<GenericResponse>
+
 }
