@@ -29,7 +29,7 @@ class UserPreferences(private val context: Context) {
             preferences[USER_DATA_KEY] = gson.toJson(usuario)
             preferences[ROL_ID_KEY] = rolID
             preferences[IS_LOGGED_IN_KEY] = true
-            preferences[USER_ID_KEY] = usuario.usuarioID
+            preferences[USER_ID_KEY] = usuario.usuaId  // ✅ CAMBIO AQUÍ: usuarioID -> usuaId
         }
     }
 

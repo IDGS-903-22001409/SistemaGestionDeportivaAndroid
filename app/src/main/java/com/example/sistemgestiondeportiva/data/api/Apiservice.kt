@@ -8,7 +8,7 @@ interface ApiService {
 
     // ============ AUTH ============
     @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+    suspend fun login(@Body request: LoginRequest): Response<ApiResponse<LoginResponse>>
 
     @POST("api/auth/registro-capitan")
     suspend fun registrarCapitan(@Body request: RegistroCapitanRequest): Response<ApiResponse<LoginResponse>>
@@ -21,7 +21,6 @@ interface ApiService {
 
     @GET("api/auth/validar-qr/{token}")
     suspend fun validarQR(@Path("token") token: String): Response<ApiResponse<QRData>>
-
     // ============ USUARIO ============
     @GET("api/usuario/perfil")
     suspend fun obtenerPerfil(@Header("Authorization") token: String): Response<ApiResponse<Usuario>>
@@ -42,6 +41,8 @@ interface ApiService {
     @GET("api/jugador/mi-perfil")
     suspend fun obtenerPerfilJugador(@Header("Authorization") token: String): Response<ApiResponse<Jugador>>
 
+    @GET("api/jugador/mi-equipo")
+    suspend fun obtenerEquipoJugador(@Header("Authorization") token: String): Response<ApiResponse<Equipo>>
     @PUT("api/jugador/actualizar")
     suspend fun actualizarJugador(
         @Header("Authorization") token: String,
@@ -55,7 +56,7 @@ interface ApiService {
     suspend fun obtenerPartidosJugador(@Header("Authorization") token: String): Response<ApiResponse<List<Partido>>>
 
     @GET("api/jugador/proximos-partidos")
-    suspend fun obtenerProximosPartidos(@Header("Authorization") token: String): Response<ApiResponse<List<Partido>>>
+    suspend fun obtenerProximosPartidosJugador(@Header("Authorization") token: String): Response<ApiResponse<List<Partido>>>
 
     @GET("api/jugador/equipo")
     suspend fun obtenerEquipo(@Header("Authorization") token: String): Response<ApiResponse<Equipo>>

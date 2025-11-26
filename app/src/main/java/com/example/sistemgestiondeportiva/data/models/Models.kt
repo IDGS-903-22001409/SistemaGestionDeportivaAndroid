@@ -9,21 +9,22 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    @SerializedName("token") val token: String,
-    @SerializedName("usuario") val usuario: Usuario,
-    @SerializedName("rol") val rol: Rol
+    @SerializedName("usua_Id") val usuaId: Int,
+    @SerializedName("usua_NombreCompleto") val nombre: String,
+    @SerializedName("usua_Email") val email: String,
+    @SerializedName("rol_Id") val rolID: Int,
+    @SerializedName("rol_Nombre") val rolNombre: String,
+    @SerializedName("token") val token: String
 )
 
 data class Usuario(
-    @SerializedName("usuarioID") val usuarioID: Int,
-    @SerializedName("nombre") val nombre: String,
-    @SerializedName("email") val email: String,
-    @SerializedName("telefono") val telefono: String? = null,
-    @SerializedName("rolID") val rolID: Int,
-    @SerializedName("fechaRegistro") val fechaRegistro: String,
-    @SerializedName("activo") val activo: Boolean
+    @SerializedName("usua_Id") val usuaId: Int,
+    @SerializedName("usua_NombreCompleto") val nombre: String,
+    @SerializedName("usua_Email") val email: String,
+    @SerializedName("usua_Telefono") val telefono: String?,
+    @SerializedName("rol_Id") val rolID: Int,           // ✅ El rolID viene aquí
+    @SerializedName("rol_Nombre") val rolNombre: String  // ✅ El nombre del rol también
 )
-
 data class Rol(
     @SerializedName("rolID") val rolID: Int,
     @SerializedName("nombreRol") val nombreRol: String,
@@ -32,10 +33,8 @@ data class Rol(
 
 // ============ QR MODELS ============
 data class QRData(
-    @SerializedName("type") val type: String, // "CAPITAN", "JUGADOR", "ARBITRO"
-    @SerializedName("equipoID") val equipoID: Int? = null,
-    @SerializedName("token") val token: String,
-    @SerializedName("invitacionID") val invitacionID: Int? = null
+    @SerializedName("type") val type: String, // "CAPITAN" o "ARBITRO"
+    @SerializedName("token") val token: String
 )
 
 data class RegistroCapitanRequest(
@@ -43,9 +42,7 @@ data class RegistroCapitanRequest(
     @SerializedName("nombre") val nombre: String,
     @SerializedName("email") val email: String,
     @SerializedName("password") val password: String,
-    @SerializedName("telefono") val telefono: String? = null,
-    @SerializedName("nombreEquipo") val nombreEquipo: String,
-    @SerializedName("logo") val logo: String? = null
+    @SerializedName("telefono") val telefono: String? = null
 )
 
 data class RegistroJugadorRequest(
@@ -60,7 +57,6 @@ data class RegistroJugadorRequest(
 )
 
 data class RegistroArbitroRequest(
-    @SerializedName("token") val token: String,
     @SerializedName("nombre") val nombre: String,
     @SerializedName("email") val email: String,
     @SerializedName("password") val password: String,
@@ -72,7 +68,7 @@ data class RegistroArbitroRequest(
 data class Jugador(
     @SerializedName("jugadorID") val jugadorID: Int,
     @SerializedName("usuarioID") val usuarioID: Int,
-    @SerializedName("equipoID") val equipoID: Int,
+    @SerializedName("equipoID") val equipoID: Int?,  // ← PUEDE SER NULL
     @SerializedName("numeroCamiseta") val numeroCamiseta: Int,
     @SerializedName("posicion") val posicion: String,
     @SerializedName("esCapitan") val esCapitan: Boolean,
@@ -111,12 +107,17 @@ data class Partido(
     @SerializedName("lugarPartido") val lugarPartido: String,
     @SerializedName("golesLocal") val golesLocal: Int? = null,
     @SerializedName("golesVisitante") val golesVisitante: Int? = null,
-    @SerializedName("estado") val estado: String, // "Programado", "En Curso", "Finalizado", "Cancelado"
+    @SerializedName("estado") val estado: String,
     @SerializedName("arbitroID") val arbitroID: Int? = null,
     @SerializedName("equipoLocal") val equipoLocal: Equipo? = null,
     @SerializedName("equipoVisitante") val equipoVisitante: Equipo? = null,
-    @SerializedName("arbitro") val arbitro: Arbitro? = null
-)
+    @SerializedName("arbitro") val arbitro: Arbitro? = null,
+    @SerializedName("sede") val sede: Sede? = null  // ✅ AGREGAR ESTA LÍNEA
+) {
+    // ✅ AGREGAR ESTE COMPUTED PROPERTY
+    val fechaHora: String
+        get() = fechaPartido
+}
 
 // ============ ARBITRO MODELS ============
 data class Arbitro(
@@ -174,7 +175,7 @@ data class UpdateJugadorRequest(
 
 // ============ RESPONSE WRAPPERS ============
 data class ApiResponse<T>(
-    @SerializedName("success") val success: Boolean,
+    @SerializedName("isSuccess") val success: Boolean,
     @SerializedName("message") val message: String?,
     @SerializedName("data") val data: T?
 )
@@ -213,4 +214,11 @@ data class ActualizarArbitroRequest(
     @SerializedName("nombre") val nombre: String,
     @SerializedName("email") val email: String,
     @SerializedName("telefono") val telefono: String?
+)
+
+data class Sede(
+    @SerializedName("sedeID") val sedeID: Int,
+    @SerializedName("nombreSede") val nombreSede: String,
+    @SerializedName("direccion") val direccion: String? = null,
+    @SerializedName("capacidad") val capacidad: Int? = null
 )

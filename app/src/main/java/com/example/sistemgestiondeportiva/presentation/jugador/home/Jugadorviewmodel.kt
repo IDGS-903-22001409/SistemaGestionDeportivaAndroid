@@ -2,6 +2,7 @@ package com.example.sistemgestiondeportiva.presentation.jugador.home
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.sistemgestiondeportiva.data.api.RetrofitClient
 import com.example.sistemgestiondeportiva.data.local.UserPreferences
@@ -47,9 +48,12 @@ class JugadorViewModel(private val context: Context) : ViewModel() {
                 val token = userPreferences.token.first()
                 if (token != null) {
                     cargarPerfilJugador(token)
-                    cargarEstadisticas(token)
-                    cargarProximosPartidos(token)
-                    cargarEquipo(token)
+                    // Solo cargar estadísticas y partidos si tiene equipo
+                    if (_jugador.value?.equipoID != null) {
+                        cargarEstadisticas(token)
+                        cargarProximosPartidos(token)
+                        cargarEquipo(token)
+                    }
                 }
             } catch (e: Exception) {
                 _error.value = "Error al cargar datos: ${e.message}"
@@ -118,7 +122,7 @@ class JugadorViewModel(private val context: Context) : ViewModel() {
 
     private suspend fun cargarProximosPartidos(token: String) {
         try {
-            val response = apiService.obtenerProximosPartidos(token)
+            val response = apiService.obtenerProximosPartidosJugador(token)
             if (response.isSuccessful && response.body()?.success == true) {
                 _proximosPartidos.value = response.body()!!.data ?: emptyList()
             }
@@ -217,8 +221,6 @@ class JugadorViewModel(private val context: Context) : ViewModel() {
         }
     }
 
-    // Agregar en JugadorViewModel y ArbitroViewModel:
-
     fun cambiarPassword(
         passwordActual: String,
         passwordNuevo: String,
@@ -234,7 +236,6 @@ class JugadorViewModel(private val context: Context) : ViewModel() {
                         "passwordNuevo" to passwordNuevo
                     )
 
-                    // Necesitas agregar este endpoint en ApiService.kt:
                     val response = apiService.cambiarPassword(token, request)
 
                     if (response.isSuccessful && response.body()?.success == true) {

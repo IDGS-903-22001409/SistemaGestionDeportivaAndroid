@@ -15,193 +15,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.ArrowBack
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RegistroCapitanScreen(
-    token: String,
-    onRegistroSuccess: () -> Unit,
-    onBackClick: () -> Unit,
-    viewModel: LoginViewModel
-) {
-    var nombre by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var nombreEquipo by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var showError by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-
-    val isLoading by viewModel.isLoading.collectAsState()
-
-    Scaffold(
-        topBar = {
-            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
-                title = { Text("Registro de Capitán") }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Crea tu perfil de capitán",
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Text(
-                text = "Completa los datos para registrar tu equipo",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                label = { Text("Nombre completo") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
-            )
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
-                value = telefono,
-                onValueChange = { telefono = it },
-                label = { Text("Teléfono (opcional)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true
-            )
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Contraseña") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
-                        )
-                    }
-                },
-                singleLine = true
-            )
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirmar contraseña") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                singleLine = true
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-            Text(
-                text = "Datos del equipo",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
-                value = nombreEquipo,
-                onValueChange = { nombreEquipo = it },
-                label = { Text("Nombre del equipo") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            if (showError) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = errorMessage,
-                        modifier = Modifier.padding(12.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
-                onClick = {
-                    when {
-                        nombre.isBlank() || email.isBlank() || password.isBlank() || nombreEquipo.isBlank() -> {
-                            showError = true
-                            errorMessage = "Por favor completa todos los campos obligatorios"
-                        }
-                        password != confirmPassword -> {
-                            showError = true
-                            errorMessage = "Las contraseñas no coinciden"
-                        }
-                        password.length < 6 -> {
-                            showError = true
-                            errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                        }
-                        else -> {
-                            showError = false
-                            viewModel.registrarCapitan(
-                                token = token,
-                                nombre = nombre,
-                                email = email,
-                                password = password,
-                                telefono = telefono.ifBlank { null },
-                                nombreEquipo = nombreEquipo,
-                                onSuccess = onRegistroSuccess,
-                                onError = { error ->
-                                    showError = true
-                                    errorMessage = error
-                                }
-                            )
-                        }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Registrar")
-                }
-            }
-
-            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
-                onClick = onBackClick,
-                outline = true
-            ) {
-                Text("Cancelar")
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -421,6 +236,183 @@ fun RegistroJugadorScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun RegistroCapitanScreen(
+    token: String,
+    onRegistroSuccess: () -> Unit,
+    onBackClick: () -> Unit,
+    viewModel: LoginViewModel
+) {
+    var nombre by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    Scaffold(
+        topBar = {
+            com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
+                title = { Text("Registro de Capitán") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, "Volver")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Regístrate como Capitán",
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Text(
+                text = "Completa tus datos para crear tu perfil",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre completo") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                enabled = !isLoading
+            )
+
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true,
+                enabled = !isLoading
+            )
+
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
+                value = telefono,
+                onValueChange = { telefono = it },
+                label = { Text("Teléfono (opcional)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                singleLine = true,
+                enabled = !isLoading
+            )
+
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Contraseña") },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = null
+                        )
+                    }
+                },
+                singleLine = true,
+                enabled = !isLoading
+            )
+
+            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirmar contraseña") },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                singleLine = true,
+                enabled = !isLoading
+            )
+
+            if (showError) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = errorMessage,
+                        modifier = Modifier.padding(12.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+
+            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
+                onClick = {
+                    when {
+                        nombre.isBlank() || email.isBlank() || password.isBlank() -> {
+                            showError = true
+                            errorMessage = "Por favor completa todos los campos obligatorios"
+                        }
+                        password != confirmPassword -> {
+                            showError = true
+                            errorMessage = "Las contraseñas no coinciden"
+                        }
+                        password.length < 6 -> {
+                            showError = true
+                            errorMessage = "La contraseña debe tener al menos 6 caracteres"
+                        }
+                        else -> {
+                            showError = false
+                            viewModel.registrarCapitan(
+                                token = token,
+                                nombre = nombre,
+                                email = email,
+                                password = password,
+                                telefono = telefono.ifBlank { null },
+                                onSuccess = onRegistroSuccess,
+                                onError = { error ->
+                                    showError = true
+                                    errorMessage = error
+                                }
+                            )
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Registrar")
+                }
+            }
+
+            TextButton(onClick = onBackClick, enabled = !isLoading) {
+                Text("Cancelar")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun RegistroArbitroScreen(
     token: String,
     onRegistroSuccess: () -> Unit,
@@ -442,7 +434,12 @@ fun RegistroArbitroScreen(
     Scaffold(
         topBar = {
             com.example.sistemgestiondeportiva.presentation.components.NeonTopAppBar(
-                title = { Text("Registro de Árbitro") }
+                title = { Text("Registro de Árbitro") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, "Volver")
+                    }
+                }
             )
         }
     ) { padding ->
@@ -456,16 +453,25 @@ fun RegistroArbitroScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Registro de Árbitro",
+                text = "Regístrate como Árbitro",
                 style = MaterialTheme.typography.headlineSmall
             )
+
+            Text(
+                text = "Completa tus datos profesionales",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre completo") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                enabled = !isLoading
             )
 
             com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
@@ -474,7 +480,8 @@ fun RegistroArbitroScreen(
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
+                singleLine = true,
+                enabled = !isLoading
             )
 
             com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
@@ -483,7 +490,8 @@ fun RegistroArbitroScreen(
                 label = { Text("Teléfono (opcional)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true
+                singleLine = true,
+                enabled = !isLoading
             )
 
             com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
@@ -491,7 +499,8 @@ fun RegistroArbitroScreen(
                 onValueChange = { licencia = it },
                 label = { Text("Número de licencia") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                enabled = !isLoading
             )
 
             com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
@@ -504,11 +513,12 @@ fun RegistroArbitroScreen(
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                            contentDescription = null
                         )
                     }
                 },
-                singleLine = true
+                singleLine = true,
+                enabled = !isLoading
             )
 
             com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
@@ -517,7 +527,8 @@ fun RegistroArbitroScreen(
                 label = { Text("Confirmar contraseña") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                singleLine = true
+                singleLine = true,
+                enabled = !isLoading
             )
 
             if (showError) {
@@ -581,10 +592,7 @@ fun RegistroArbitroScreen(
                 }
             }
 
-            com.example.sistemgestiondeportiva.presentation.components.NeonButton(
-                onClick = onBackClick,
-                outline = true
-            ) {
+            TextButton(onClick = onBackClick, enabled = !isLoading) {
                 Text("Cancelar")
             }
         }

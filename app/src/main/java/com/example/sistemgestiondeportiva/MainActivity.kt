@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
+import androidx.lifecycle.ViewModelProvider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,8 +71,13 @@ fun AppNavigation() {
 
             startDestination = when {
                 !isLoggedIn -> "login"
-                rolID == 3 -> "jugador/home" // Jugador
-                rolID == 4 -> "arbitro/home" // Arbitro
+                rolID == 3 -> {
+                    // Capitán: verificar si tiene equipo
+                    val usuario = userPreferences.userData.first()
+                    // Si no tiene equipo asignado, mostrar pantalla de espera
+                    "jugador/home" // La lógica de "sin equipo" se maneja en JugadorHomeScreen
+                }
+                rolID == 4 -> "arbitro/home" // Árbitro
                 else -> "login"
             }
         }
@@ -82,9 +88,7 @@ fun AppNavigation() {
             navController = navController,
             startDestination = startDestination!!
         ) {
-            // ========================================
-            // LOGIN Y REGISTRO
-            // ========================================
+            // ========== LOGIN ==========
             composable("login") {
                 val viewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(navController.context)
@@ -107,13 +111,13 @@ fun AppNavigation() {
                 )
             }
 
+
             composable("scan-qr") {
                 val viewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(navController.context)
                 )
                 QRScannerScreen(
                     onQRCodeScanned = { qrCode ->
-                        // Codificar el token en Base64 para navegación segura
                         val encodedToken = Base64.encodeToString(
                             qrCode.toByteArray(),
                             Base64.URL_SAFE or Base64.NO_WRAP
@@ -124,9 +128,6 @@ fun AppNavigation() {
                             onSuccess = { qrData ->
                                 when (qrData.type) {
                                     "CAPITAN" -> navController.navigate("registro-capitan/$encodedToken") {
-                                        popUpTo("scan-qr") { inclusive = true }
-                                    }
-                                    "JUGADOR" -> navController.navigate("registro-jugador/$encodedToken/${qrData.equipoID}") {
                                         popUpTo("scan-qr") { inclusive = true }
                                     }
                                     "ARBITRO" -> navController.navigate("registro-arbitro/$encodedToken") {
@@ -154,7 +155,6 @@ fun AppNavigation() {
                 arguments = listOf(navArgument("token") { type = NavType.StringType })
             ) { backStackEntry ->
                 val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
-
                 val token = try {
                     String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
                 } catch (e: Exception) {
@@ -168,6 +168,34 @@ fun AppNavigation() {
                     token = token,
                     onRegistroSuccess = {
                         navController.navigate("jugador/home") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    viewModel = viewModel
+                )
+            }
+
+            composable(
+                "registro-arbitro/{token}",
+                arguments = listOf(navArgument("token") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedToken = backStackEntry.arguments?.getString("token") ?: ""
+                val token = try {
+                    String(Base64.decode(encodedToken, Base64.URL_SAFE or Base64.NO_WRAP))
+                } catch (e: Exception) {
+                    encodedToken
+                }
+
+                val viewModel: LoginViewModel = viewModel(
+                    factory = LoginViewModelFactory(navController.context)
+                )
+                RegistroArbitroScreen(
+                    token = token,
+                    onRegistroSuccess = {
+                        navController.navigate("arbitro/home") {
                             popUpTo(0) { inclusive = true }
                         }
                     },

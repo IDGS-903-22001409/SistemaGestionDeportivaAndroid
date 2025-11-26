@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
 
-
 class LoginViewModel(private val context: Context) : ViewModel() {
 
     private val apiService = RetrofitClient.apiService
@@ -25,27 +24,37 @@ class LoginViewModel(private val context: Context) : ViewModel() {
     fun login(
         email: String,
         password: String,
-        onSuccess: (Int) -> Unit, // Devuelve rolID
+        onSuccess: (Int) -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                val response = apiService.login(LoginRequest(email, password))
+                val request = LoginRequest(email = email, password = password)
+                val response = apiService.login(request)
 
-                if (response.isSuccessful && response.body() != null) {
-                    val loginResponse = response.body()!!
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val loginResponse = response.body()!!.data!!
 
-                    // Guardar datos de autenticación
-                    userPreferences.saveAuthData(
-                        token = "Bearer ${loginResponse.token}",
-                        usuario = loginResponse.usuario,
-                        rolID = loginResponse.rol.rolID
+                    // Crear objeto Usuario desde LoginResponse
+                    val usuario = Usuario(
+                        usuaId = loginResponse.usuaId,
+                        nombre = loginResponse.nombre,
+                        email = loginResponse.email,
+                        telefono = null,
+                        rolID = loginResponse.rolID,
+                        rolNombre = loginResponse.rolNombre
                     )
 
-                    onSuccess(loginResponse.rol.rolID)
+                    userPreferences.saveAuthData(
+                        token = "Bearer ${loginResponse.token}",
+                        usuario = usuario,
+                        rolID = loginResponse.rolID
+                    )
+
+                    onSuccess(loginResponse.rolID)
                 } else {
-                    onError("Credenciales incorrectas")
+                    onError(response.body()?.message ?: "Error al iniciar sesión")
                 }
             } catch (e: Exception) {
                 onError("Error de conexión: ${e.message}")
@@ -63,44 +72,18 @@ class LoginViewModel(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-
-                Log.d("QR_SCAN", "=== INICIO VALIDACIÓN QR ===")
-                Log.d("QR_SCAN", "QR escaneado: $qrCode")
-
                 val response = apiService.validarQR(qrCode)
 
-                Log.d("QR_SCAN", "Response code: ${response.code()}")
-                Log.d("QR_SCAN", "Response success: ${response.isSuccessful}")
-
-                if (response.isSuccessful) {
-                    val body = response.body()
-                    Log.d("QR_SCAN", "Response body success: ${body?.success}")
-                    Log.d("QR_SCAN", "Response body data: ${body?.data}")
-
-                    if (body?.success == true && body.data != null) {
-                        val qrData = body.data
-                        Log.d("QR_SCAN", "QR válido - Tipo: ${qrData.type}")
-                        Log.d("QR_SCAN", "Token: ${qrData.token}")
-                        Log.d("QR_SCAN", "EquipoID: ${qrData.equipoID}")
-                        Log.d("QR_SCAN", "=== LLAMANDO onSuccess ===")
-                        onSuccess(qrData)
-                    } else {
-                        Log.e("QR_SCAN", "QRData es null o success es false")
-                        onError("Código QR no válido")
-                    }
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val qrData = response.body()!!.data!!
+                    onSuccess(qrData)
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("QR_SCAN", "Response error: $errorBody")
-                    onError("Código QR inválido o expirado")
+                    onError(response.body()?.message ?: "Código QR inválido")
                 }
             } catch (e: Exception) {
-                Log.e("QR_SCAN", "Exception al validar QR", e)
-                Log.e("QR_SCAN", "Message: ${e.message}")
-                Log.e("QR_SCAN", "Stack trace: ${e.stackTraceToString()}")
-                onError("Error al validar QR: ${e.message}")
+                onError("Error de conexión: ${e.message}")
             } finally {
                 _isLoading.value = false
-                Log.d("QR_SCAN", "=== FIN VALIDACIÓN QR ===")
             }
         }
     }
@@ -111,7 +94,6 @@ class LoginViewModel(private val context: Context) : ViewModel() {
         email: String,
         password: String,
         telefono: String?,
-        nombreEquipo: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -123,8 +105,7 @@ class LoginViewModel(private val context: Context) : ViewModel() {
                     nombre = nombre,
                     email = email,
                     password = password,
-                    telefono = telefono,
-                    nombreEquipo = nombreEquipo
+                    telefono = telefono
                 )
 
                 val response = apiService.registrarCapitan(request)
@@ -132,11 +113,74 @@ class LoginViewModel(private val context: Context) : ViewModel() {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val loginResponse = response.body()!!.data!!
 
-                    // Guardar datos de autenticación
+                    // ✅ CORRECCIÓN: LoginResponse tiene estructura plana, igual que login()
+                    val usuario = Usuario(
+                        usuaId = loginResponse.usuaId,
+                        nombre = loginResponse.nombre,
+                        email = loginResponse.email,
+                        telefono = telefono,
+                        rolID = loginResponse.rolID,
+                        rolNombre = loginResponse.rolNombre
+                    )
+
                     userPreferences.saveAuthData(
                         token = "Bearer ${loginResponse.token}",
-                        usuario = loginResponse.usuario,
-                        rolID = loginResponse.rol.rolID
+                        usuario = usuario,
+                        rolID = loginResponse.rolID
+                    )
+
+                    onSuccess()
+                } else {
+                    onError(response.body()?.message ?: "Error al registrar")
+                }
+            } catch (e: Exception) {
+                onError("Error de conexión: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun registrarArbitro(
+        token: String,
+        nombre: String,
+        email: String,
+        password: String,
+        telefono: String?,
+        licencia: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                val request = RegistroArbitroRequest(
+                    nombre = nombre,
+                    email = email,
+                    password = password,
+                    telefono = telefono,
+                    licencia = licencia
+                )
+
+                val response = apiService.registrarArbitro(request)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val loginResponse = response.body()!!.data!!
+
+                    // ✅ CORRECCIÓN: LoginResponse tiene estructura plana
+                    val usuario = Usuario(
+                        usuaId = loginResponse.usuaId,
+                        nombre = loginResponse.nombre,
+                        email = loginResponse.email,
+                        telefono = telefono,
+                        rolID = loginResponse.rolID,
+                        rolNombre = loginResponse.rolNombre
+                    )
+
+                    userPreferences.saveAuthData(
+                        token = "Bearer ${loginResponse.token}",
+                        usuario = usuario,
+                        rolID = loginResponse.rolID
                     )
 
                     onSuccess()
@@ -182,60 +226,25 @@ class LoginViewModel(private val context: Context) : ViewModel() {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val loginResponse = response.body()!!.data!!
 
+                    // ✅ CORRECCIÓN: LoginResponse tiene estructura plana
+                    val usuario = Usuario(
+                        usuaId = loginResponse.usuaId,
+                        nombre = loginResponse.nombre,
+                        email = loginResponse.email,
+                        telefono = telefono,
+                        rolID = loginResponse.rolID,
+                        rolNombre = loginResponse.rolNombre
+                    )
+
                     userPreferences.saveAuthData(
                         token = "Bearer ${loginResponse.token}",
-                        usuario = loginResponse.usuario,
-                        rolID = loginResponse.rol.rolID
+                        usuario = usuario,
+                        rolID = loginResponse.rolID
                     )
 
                     onSuccess()
                 } else {
-                    onError(response.body()?.message ?: "Error al registrar")
-                }
-            } catch (e: Exception) {
-                onError("Error de conexión: ${e.message}")
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun registrarArbitro(
-        token: String,
-        nombre: String,
-        email: String,
-        password: String,
-        telefono: String?,
-        licencia: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                val request = RegistroArbitroRequest(
-                    token = token,
-                    nombre = nombre,
-                    email = email,
-                    password = password,
-                    telefono = telefono,
-                    licencia = licencia
-                )
-
-                val response = apiService.registrarArbitro(request)
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val loginResponse = response.body()!!.data!!
-
-                    userPreferences.saveAuthData(
-                        token = "Bearer ${loginResponse.token}",
-                        usuario = loginResponse.usuario,
-                        rolID = loginResponse.rol.rolID
-                    )
-
-                    onSuccess()
-                } else {
-                    onError(response.body()?.message ?: "Error al registrar")
+                    onError(response.body()?.message ?: "Error al registrar jugador")
                 }
             } catch (e: Exception) {
                 onError("Error de conexión: ${e.message}")
