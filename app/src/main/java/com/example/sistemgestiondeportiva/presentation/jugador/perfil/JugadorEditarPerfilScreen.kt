@@ -99,55 +99,60 @@ fun JugadorEditarPerfilScreen(
                 enabled = !isLoading
             )
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            // Ocultar información deportiva para capitanes
+            val esCapitan = jugador?.esCapitan == true
+            
+            if (!esCapitan) {
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            Text(
-                "Información Deportiva",
-                style = MaterialTheme.typography.titleMedium
-            )
+                Text(
+                    "Información Deportiva",
+                    style = MaterialTheme.typography.titleMedium
+                )
 
-            com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
-                value = numeroCamiseta,
-                onValueChange = {
-                    if (it.length <= 3 && it.all { char -> char.isDigit() })
-                        numeroCamiseta = it
-                },
-                label = { Text("Número de Camiseta") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                enabled = !isLoading
-            )
-
-            ExposedDropdownMenuBox(
-                expanded = expandedPosicion,
-                onExpandedChange = { expandedPosicion = !expandedPosicion && !isLoading }
-            ) {
-                OutlinedTextField(
-                    value = posicion,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Posición") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPosicion)
+                com.example.sistemgestiondeportiva.presentation.components.NeonOutlinedTextField(
+                    value = numeroCamiseta,
+                    onValueChange = {
+                        if (it.length <= 3 && it.all { char -> char.isDigit() })
+                            numeroCamiseta = it
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
+                    label = { Text("Número de Camiseta") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
                     enabled = !isLoading
                 )
-                ExposedDropdownMenu(
+
+                ExposedDropdownMenuBox(
                     expanded = expandedPosicion,
-                    onDismissRequest = { expandedPosicion = false }
+                    onExpandedChange = { expandedPosicion = !expandedPosicion && !isLoading }
                 ) {
-                    posiciones.forEach { pos ->
-                        DropdownMenuItem(
-                            text = { Text(pos) },
-                            onClick = {
-                                posicion = pos
-                                expandedPosicion = false
-                            }
-                        )
+                    OutlinedTextField(
+                        value = posicion,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Posición") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPosicion)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        enabled = !isLoading
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedPosicion,
+                        onDismissRequest = { expandedPosicion = false }
+                    ) {
+                        posiciones.forEach { pos ->
+                            DropdownMenuItem(
+                                text = { Text(pos) },
+                                onClick = {
+                                    posicion = pos
+                                    expandedPosicion = false
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -164,6 +169,8 @@ fun JugadorEditarPerfilScreen(
 
             com.example.sistemgestiondeportiva.presentation.components.NeonButton(
                 onClick = {
+                    val esCapitan = jugador?.esCapitan == true
+                    
                     when {
                         nombre.isBlank() -> {
                             showError = true
@@ -173,11 +180,11 @@ fun JugadorEditarPerfilScreen(
                             showError = true
                             errorMessage = "El email es obligatorio"
                         }
-                        numeroCamiseta.isBlank() -> {
+                        !esCapitan && numeroCamiseta.isBlank() -> {
                             showError = true
                             errorMessage = "El número de camiseta es obligatorio"
                         }
-                        posicion.isBlank() -> {
+                        !esCapitan && posicion.isBlank() -> {
                             showError = true
                             errorMessage = "La posición es obligatoria"
                         }
@@ -188,8 +195,8 @@ fun JugadorEditarPerfilScreen(
                                 nombre = nombre,
                                 email = email,
                                 telefono = telefono.ifBlank { null },
-                                numeroCamiseta = numeroCamiseta.toInt(),
-                                posicion = posicion,
+                                numeroCamiseta = if (esCapitan) 0 else numeroCamiseta.toInt(),
+                                posicion = if (esCapitan) "Capitán" else posicion,
                                 onSuccess = {
                                     isLoading = false
                                     onSaved()

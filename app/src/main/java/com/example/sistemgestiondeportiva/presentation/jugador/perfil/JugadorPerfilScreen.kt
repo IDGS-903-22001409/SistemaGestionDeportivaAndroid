@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sistemgestiondeportiva.presentation.jugador.home.JugadorViewModel
@@ -151,7 +152,7 @@ fun JugadorPerfilScreen(
                         InfoRow(
                             icon = Icons.Default.Person,
                             label = "Nombre",
-                            value = u.nombre
+                            value = u.nombre ?: "Sin nombre"
                         )
 
                         Divider(modifier = Modifier.padding(vertical = 12.dp))
@@ -160,7 +161,7 @@ fun JugadorPerfilScreen(
                         InfoRow(
                             icon = Icons.Default.Email,
                             label = "Email",
-                            value = u.email
+                            value = u.email ?: "Sin correo"
                         )
 
                         if (!u.telefono.isNullOrBlank()) {
@@ -170,7 +171,7 @@ fun JugadorPerfilScreen(
                             InfoRow(
                                 icon = Icons.Default.Phone,
                                 label = "Teléfono",
-                                value = u.telefono
+                                value = u.telefono ?: "Sin teléfono"
                             )
                         }
                     }
@@ -221,9 +222,9 @@ fun JugadorPerfilScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         InfoRow(
-                            icon = Icons.Default.Face,
+                            icon = Icons.Default.Groups,  // Mejor icono para equipo
                             label = "Equipo",
-                            value = e.nombreEquipo
+                            value = e.nombreEquipo  // La propiedad correcta es "nombre"
                         )
                     }
                 }
@@ -318,28 +319,33 @@ fun JugadorPerfilScreen(
 
 @Composable
 fun InfoRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
-    value: String
+    value: String?
 ) {
-    Column {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                icon,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
             Text(
-                value,
-                style = MaterialTheme.typography.bodyLarge
+                label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                value ?: "No especificado",  // ✅ Manejar null
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
             )
         }
     }

@@ -96,11 +96,18 @@ fun AppNavigation() {
                 LoginScreen(
                     onLoginSuccess = { rolID ->
                         when (rolID) {
-                            3 -> navController.navigate("jugador/home") {
+                            2 -> navController.navigate("jugador/home") {  // ✅ Jugador
                                 popUpTo("login") { inclusive = true }
                             }
-                            4 -> navController.navigate("arbitro/home") {
+                            3 -> navController.navigate("jugador/home") {  // ✅ Capitán
                                 popUpTo("login") { inclusive = true }
+                            }
+                            4 -> navController.navigate("arbitro/home") {  // ✅ Árbitro
+                                popUpTo("login") { inclusive = true }
+                            }
+                            else -> {
+                                // Manejo de error para roles desconocidos
+                                println("Rol desconocido: $rolID")
                             }
                         }
                     },
@@ -118,31 +125,57 @@ fun AppNavigation() {
                 )
                 QRScannerScreen(
                     onQRCodeScanned = { qrCode ->
-                        val encodedToken = Base64.encodeToString(
-                            qrCode.toByteArray(),
-                            Base64.URL_SAFE or Base64.NO_WRAP
-                        )
-
-                        viewModel.validarQR(
-                            qrCode = qrCode,
-                            onSuccess = { qrData ->
-                                when (qrData.type) {
-                                    "CAPITAN" -> navController.navigate("registro-capitan/$encodedToken") {
+                        // Detectar si es QR de equipo (QR-EQUIPO-{equipoID}-{guid})
+                        if (qrCode.startsWith("QR-EQUIPO-")) {
+                            // Extraer equipoID del formato: QR-EQUIPO-1-39423eb3...
+                            val parts = qrCode.split("-")
+                            if (parts.size >= 3) {
+                                val equipoID = parts[2].toIntOrNull()
+                                if (equipoID != null) {
+                                    val encodedToken = Base64.encodeToString(
+                                        qrCode.toByteArray(),
+                                        Base64.URL_SAFE or Base64.NO_WRAP
+                                    )
+                                    navController.navigate("registro-jugador/$encodedToken/$equipoID") {
                                         popUpTo("scan-qr") { inclusive = true }
                                     }
-                                    "ARBITRO" -> navController.navigate("registro-arbitro/$encodedToken") {
-                                        popUpTo("scan-qr") { inclusive = true }
-                                    }
-                                    else -> {
-                                        navController.popBackStack()
-                                    }
+                                } else {
+                                    println("QR de equipo inválido")
+                                    navController.popBackStack()
                                 }
-                            },
-                            onError = { error ->
-                                println("Error al validar QR: $error")
+                            } else {
+                                println("Formato de QR de equipo inválido")
                                 navController.popBackStack()
                             }
-                        )
+                        } else {
+                            // Para QR de capitán/árbitro, validar con el backend
+                            val encodedToken = Base64.encodeToString(
+                                qrCode.toByteArray(),
+                                Base64.URL_SAFE or Base64.NO_WRAP
+                            )
+
+                            viewModel.validarQR(
+                                qrCode = qrCode,
+                                onSuccess = { qrData ->
+                                    when (qrData.type) {
+                                        "CAPITAN" -> navController.navigate("registro-capitan/$encodedToken") {
+                                            popUpTo("scan-qr") { inclusive = true }
+                                        }
+                                        "ARBITRO" -> navController.navigate("registro-arbitro/$encodedToken") {
+                                            popUpTo("scan-qr") { inclusive = true }
+                                        }
+                                        else -> {
+                                            println("Tipo de QR desconocido: ${qrData.type}")
+                                            navController.popBackStack()
+                                        }
+                                    }
+                                },
+                                onError = { error ->
+                                    println("Error al validar QR: $error")
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
                     },
                     onBackClick = {
                         navController.popBackStack()
