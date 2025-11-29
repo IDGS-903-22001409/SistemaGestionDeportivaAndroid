@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
 
     // ⬇️ CAMBIAR PUERTO A 5022 (HTTP)
-    private const val BASE_URL = "http://192.168.1.11:5289/"
+    private const val BASE_URL = "https://webservicescm.epcucm.com.mx:50452/WS-Torneos/"
 
     // ⬇️ AGREGAR LOGGING COMPLETO
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
